@@ -238,48 +238,51 @@ Require all denied
 —
 
 
-#### 1.5 Ensure rate limiting is configured for wp-login.php
+#### 1.5 Ensure rate limiting is configured for all API surfaces
 
 **Profile Applicability:** **Level 1**
 
 **Assessment Status:** Automated
 
-**Description:** HTTP request rate limiting should be applied to wp-login.php and xmlrpc.php to throttle brute-force login attempts.
+**Description:** HTTP request rate limiting should be applied to all authentication and API endpoints, including `wp-login.php`, `xmlrpc.php`, and the WordPress REST API (`/wp-json/`).
 
-**Rationale:** WordPress login forms are the primary target for automated brute-force attacks. Rate limiting reduces the effectiveness of these attacks and protects server resources.
+**Rationale:** WordPress authentication and API interfaces are primary targets for automated brute-force and resource exhaustion attacks. Comprehensive rate limiting across all entry points reduces the effectiveness of these attacks and protects server resources.
 
-**Impact:** Aggressive rate limiting may lock out legitimate users during concurrent login activity. Configure burst allowances appropriately.
+**Impact:** Aggressive rate limiting may lock out legitimate users or break third-party integrations (e.g., decoupled front-ends) if not configured with appropriate burst allowances and whitelist exceptions.
 
 **Audit:**
 
-For Nginx, check for limit_req configuration:
+For Nginx, check for `limit_req` configuration:
 ```
 $ grep -r 'limit_req' /etc/nginx/
 ```
-Verify rate limiting zones are defined and applied to login-related locations.
+Verify rate limiting zones are defined and applied to login, XML-RPC, and REST API locations.
 
 **Remediation:**
 
-For Nginx, define a rate limiting zone and apply it:
-\# In http block:
+For Nginx, define rate limiting zones and apply them to the relevant locations:
 
-```
+```nginx
+# In http block:
 limit_req_zone $binary_remote_addr zone=wplogin:10m rate=1r/s;
-```
+limit_req_zone $binary_remote_addr zone=wpapi:10m rate=5r/s;
 
-\# In server block:
-
-```
+# In server block:
 location = /wp-login.php {
-```
-
-```
-limit_req zone=wplogin burst=3 nodelay;
-```
-
-\# \... PHP processing directives \...
-
+    limit_req zone=wplogin burst=3 nodelay;
+    # ... PHP processing ...
 }
+
+location = /xmlrpc.php {
+    limit_req zone=wplogin burst=3 nodelay;
+    # ... PHP processing ...
+}
+
+location ~ ^/wp-json/ {
+    limit_req zone=wpapi burst=10 nodelay;
+    # ... PHP processing ...
+}
+```
 
 **Default Value:** No rate limiting is configured by default.
 
@@ -1059,6 +1062,39 @@ add_filter( 'rest_authentication_errors', function( $result ) {
 —
 
 
+#### 5.7 Ensure a strong password policy is enforced
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Manual
+
+**Description:** Configure WordPress to enforce a strong password policy that follows current OWASP recommendations: minimum length of 12 characters, checking against breached password/dictionary lists, and avoiding arbitrary complexity rules that lead to predictable patterns.
+
+**Rationale:** Weak passwords are a primary vector for account takeover. Modern standards (NIST SP 800-63B and OWASP) emphasize length and entropy over complexity (e.g., forcing special characters), and mandate checking against known compromised credentials.
+
+**Impact:** Users may need to update existing weak passwords. Requires a plugin for advanced enforcement (e.g., Wordfence, iThemes Security, or Passthrough Authentication).
+
+**Audit:**
+
+This is a manual check. Verify that:
+1\. A password enforcement mechanism is active.
+2\. Test by attempting to set a simple 8-character password; verify it is rejected.
+3\. Verify the policy requires at least 12 characters.
+
+**Remediation:**
+
+1\. Install a security plugin that supports password policy enforcement.
+2\. Configure the policy to require a minimum of 12 characters.
+3\. Enable "pwned password" checks to block credentials found in previous data breaches.
+4\. Remove legacy requirements for symbols or numbers if they interfere with user-generated passphrases.
+
+**Default Value:** WordPress encourages strong passwords but does not strictly enforce a minimum length or check against breached lists by default.
+
+**References:** OWASP Authentication Cheat Sheet, NIST SP 800-63B
+
+—
+
+
 ## 6 File System Permissions
 
 This section covers file ownership and permission settings for the WordPress installation.
@@ -1378,7 +1414,7 @@ The following table summarizes all recommendations in this benchmark.
 | 1.2  | Ensure HTTP security headers are configured         | L1        | Automated      |
 | 1.3  | Ensure server tokens are hidden                     | L1        | Automated      |
 | 1.4  | Ensure PHP execution is blocked in uploads          | L1        | Automated      |
-| 1.5  | Ensure rate limiting is configured for wp-login.php | L1        | Automated      |
+| 1.5  | Ensure rate limiting is configured for all APIs    | L1        | Automated      |
 | 2.1  | Ensure expose_php is disabled                       | L1        | Automated      |
 | 2.2  | Ensure display_errors is disabled                   | L1        | Automated      |
 | 2.3  | Ensure dangerous PHP functions are disabled         | L1        | Automated      |
@@ -1400,6 +1436,7 @@ The following table summarizes all recommendations in this benchmark.
 | 5.4  | Ensure user enumeration is prevented                | L1        | Automated      |
 | 5.5  | Ensure reauthentication for privileged actions      | L2        | Manual         |
 | 5.6  | Ensure unauthenticated REST API is restricted       | L2        | Automated      |
+| 5.7  | Ensure strong password policy is enforced          | L1        | Manual         |
 | 6.1  | Ensure files are owned by non-web-server user       | L1        | Automated      |
 | 6.2  | Ensure wp-config.php has restrictive permissions    | L1        | Automated      |
 | 7.1  | Ensure user activity logging is enabled             | L1        | Manual         |
