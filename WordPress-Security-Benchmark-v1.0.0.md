@@ -1,6 +1,6 @@
-›æ**NLM WordPress Benchmark**
+# NLM WordPress Benchmark #
 
-Full Stack Hardening Guide
+**Full Stack Hardening Guide**
 
 v1.0.0 â€” February 2026
 
@@ -10,9 +10,12 @@ WordPress 6.x on Linux (Ubuntu/Debian)
 
 Nginx or Apache â€¢ PHP 8.x â€¢ MySQL 8.x / MariaDB 10.x+
 
-Authored by Dan Knauss (https://github.com/danknauss)
-
 *Format adapted from industry-standard benchmarks*
+
+
+Authored by Dan Knauss 
+dan@newlocalmedia.com
+
 
 ## Overview
 
@@ -33,6 +36,8 @@ The guidance draws on many WordPress security resources and standards, such as t
 -   PHP 8.1+ (8.2+ recommended)
 
 -   MySQL 8.0+ or MariaDB 10.6+
+
+**Note on Containerization:** While this benchmark assumes a traditional Linux stack, the principles and many of the configuration settings apply equally to containerized environments (Docker, Kubernetes). In such cases, configurations should be injected via environment variables or secret management systems rather than direct file edits where possible.
 
 ## Profile Definitions
 
@@ -362,7 +367,9 @@ error_log = /var/log/php/error.log
 
 **Rationale:** If an attacker achieves code execution (e.g., through a vulnerable plugin), these functions enable them to execute system commands, read arbitrary files, or escalate the attack.
 
-**Impact:** Some WordPress plugins may require specific functions. Test thoroughly before deploying. The eval() function cannot be disabled via disable_functions.
+**Impact:** Some WordPress plugins may require specific functions. Test thoroughly before deploying. The `eval()` function is a language construct and cannot be disabled via `disable_functions`.
+
+**Recommendation (Level 2):** For high-security environments, consider using a PHP security extension like **Snuffleupagus** to mitigate `eval()` and provide additional hardening that `disable_functions` cannot achieve.
 
 **Audit:**
 
@@ -1013,6 +1020,45 @@ Implement via a security plugin that supports sudo/reauthentication mode (e.g., 
 â€”
 
 
+#### 5.6 Ensure unauthenticated REST API access is restricted
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Automated
+
+**Description:** The WordPress REST API should be restricted to authenticated users only, except for specific public endpoints that require unauthenticated access (e.g., for front-end search or decoupled front-ends).
+
+**Rationale:** By default, the REST API is open and provides significant information about the site structure, content, and users. Restricting access reduces the attack surface and prevents information leakage to unauthenticated actors.
+
+**Impact:** Will break decoupled (headless) installations or plugins that rely on unauthenticated REST API access for front-end functionality.
+
+**Audit:**
+
+```
+$ curl -sI https://example.com/wp-json/wp/v2/posts
+```
+If the response is `200 OK`, unauthenticated access is allowed. A `401 Unauthorized` or `403 Forbidden` indicates restricted access.
+
+**Remediation:**
+
+Add a must-use plugin:
+```php
+add_filter( 'rest_authentication_errors', function( $result ) {
+    if ( ! empty( $result ) ) {
+        return $result;
+    }
+    if ( ! is_user_logged_in() ) {
+        return new WP_Error( 'rest_not_logged_in', 'You are not currently logged in.', array( 'status' => 401 ) );
+    }
+    return $result;
+});
+```
+
+**Default Value:** REST API is accessible to unauthenticated users.
+
+â€”
+
+
 ## 6 File System Permissions
 
 This section covers file ownership and permission settings for the WordPress installation.
@@ -1283,31 +1329,36 @@ Verify no security updates are pending.
 
 This section addresses the deployment and configuration of a Web Application Firewall (WAF) to protect the WordPress application.
 
-#### 9.1 Ensure Web Application Firewall is Configured with WordPress Exclusions
+#### 9.1 Ensure Web Application Firewall is Configured
 
 **Profile Applicability:** **Level 2**
 
 **Assessment Status:** Manual
 
-**Description:** Deploy a Web Application Firewall (WAF) such as ModSecurity with the OWASP Core Rule Set (CRS). Ensure the **OWASP CRS WordPress Rule Exclusions Plugin** is enabled to prevent false positives.
+**Description:** Deploy a Web Application Firewall (WAF). This can be a server-level solution like **ModSecurity** with the OWASP Core Rule Set (CRS), or a cloud-based solution such as **Cloudflare WAF**, **Akamai**, or **Sucuri**.
 
-**Rationale:** A WAF provides immediate protection against common web attacks (SQLi, XSS, RCE) before they reach the application. The WordPress Exclusion rules are necessary to allow legitimate WordPress functionality (like post saving and media uploads) to pass through the WAF.
+**Rationale:** A WAF provides immediate protection against common web attacks (SQLi, XSS, RCE) before they reach the application. For server-level WAFs like ModSecurity, WordPress-specific exclusion rules are necessary to allow legitimate functionality (like post saving and media uploads) to pass through without being blocked as false positives. Cloud WAFs typically manage these rulesets automatically.
 
-**Impact:** WAFs can introduce latency and false positives. Tuning is required.
+**Impact:** WAFs can introduce latency and false positives. Tuning is required. Cloud WAFs may require DNS changes.
 
 **Audit:**
 
 This is a manual check. Verify that:
-1. A WAF (e.g., ModSecurity) is active and blocking malicious requests.
-2. The OWASP Core Rule Set is enabled.
-3. The WordPress Rule Exclusions are enabled (e.g., via `crs-setup.conf` or plugin).
+1. A WAF is active and blocking malicious requests (verify via logs or simulation).
+2. If using ModSecurity, the OWASP Core Rule Set and WordPress Rule Exclusions are enabled.
+3. If using a Cloud WAF, the WordPress-specific protection profile is active.
 
 **Remediation:**
 
+For server-level WAF:
 1. Install ModSecurity and the OWASP Core Rule Set.
 2. Enable the WordPress exclusion rule set.
    - For OWASP CRS v3.x: Uncomment the WordPress exclusion rule in `crs-setup.conf`.
    - For OWASP CRS v4.x: Use the [WordPress Rule Exclusions Plugin](https://github.com/coreruleset/wordpress-rule-exclusions-plugin).
+
+For Cloud WAF:
+1. Route traffic through a provider such as Cloudflare, Akamai, or Sucuri.
+2. Enable Managed Rulesets related to WordPress and OWASP Top 10.
 
 **Default Value:** No WAF is configured by default.
 
@@ -1348,6 +1399,7 @@ The following table summarizes all recommendations in this benchmark.
 | 5.3  | Ensure max session lifetime is enforced             | L2        | Automated      |
 | 5.4  | Ensure user enumeration is prevented                | L1        | Automated      |
 | 5.5  | Ensure reauthentication for privileged actions      | L2        | Manual         |
+| 5.6  | Ensure unauthenticated REST API is restricted       | L2        | Automated      |
 | 6.1  | Ensure files are owned by non-web-server user       | L1        | Automated      |
 | 6.2  | Ensure wp-config.php has restrictive permissions    | L1        | Automated      |
 | 7.1  | Ensure user activity logging is enabled             | L1        | Manual         |
@@ -1355,257 +1407,8 @@ The following table summarizes all recommendations in this benchmark.
 | 8.1  | Ensure unused plugins and themes are removed        | L1        | Automated      |
 | 8.2  | Ensure extensions are from trusted sources          | L1        | Manual         |
 | 8.3  | Ensure plugin/theme updates are applied promptly    | L1        | Manual         |
-| 9.1  | Ensure WAF is configured with WP exclusions         | L2        | Manual         |
+| 9.1  | Ensure Web Application Firewall is Configured        | L2        | Manual         |
 
 ## License
 
 This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0). This document is an independent work.
- 	× ×ö
-ö 
- ‘
-‘’ ’”
-”• •—
-—˜ ˜™
-™š šœ
-œ 
-Ÿ Ÿ 
- £ £¦
-¦§ §©
-©İ 
-İâ 
-âì ìí
-íõ 
-õŒ 
-Œ –
-–¯ ¯¯
-¯ˆ" ˆ"‹"
-‹"Œ" Œ"•"
-•"–" –"§"
-§"¨" ¨"ª"
-ª"«" «"¯"
-¯"°" °"Ê"
-Ê"Ë" Ë"Ø"
-Ø"Ü" Ü"ê"
-ê"ë" ë"ì"
-ì"í" í"ô"
-ô"ö" ö"‚#
-‚#ƒ# ƒ#†#
-†#‡# ‡#‰#
-‰#Š# Š#Œ#
-Œ## ##
-## #‘#
-‘#’# ’#“#
-“#•# •#›#
-›#œ# œ##
-#Ÿ# Ÿ#ª#
-ª#­# ­#¾#¾#±Ç 
-±Ç²Ç²Ç™ş 
-™şšşšş¼ş 
-¼şŒ€Œ€‡¾ 
-‡¾Ú¿Ú¿Ş¿ 
-Ş¿è¿è¿é¿ 
-é¿í¿í¿î¿ 
-î¿ü¿ü¿ı¿ 
-ı¿ˆÀˆÀ‰À 
-‰À»À»ÀÀÀ 
-ÀÀŒÁŒÁÁ 
-Á£Á£Á¦Á 
-¦ÁºÁºÁ»Á 
-»ÁÀÁÀÁÁÁ 
-ÁÁÒÁÒÁÓÁ 
-ÓÁæÁæÁçÁ 
-çÁëÁëÁìÁ 
-ìÁôÁôÁöÁ 
-öÁ„Â„Â…Â 
-…Â¦Â¦Â§Â 
-§Â«Â«Â¬Â 
-¬Â›Ã›ÃÃ 
-Ã Ã Ã¡Ã 
-¡Ã¥Ã¥Ã¦Ã 
-¦Ã§Ã§Ã¨Ã 
-¨ÃÆÃÆÃÇÃ 
-ÇÃçÃçÃèÃ 
-èÃíÃíÃîÃ 
-îÃ¤Ä¤Ä¥Ä 
-¥Ä·Ä·Ä¸Ä 
-¸Ä¿Ä¿ÄÀÄ 
-ÀÄÁÄÁÄÂÄ 
-ÂÄÏÄÏÄĞÄ 
-ĞÄÕÄÕÄÖÄ 
-ÖÄæÄæÄçÄ 
-çÄ›Å›ÅÅ 
-Å°Å°Å±Å 
-±ÅÀÅÀÅÁÅ 
-ÁÅßÅßÅáÅ 
-áÅ‡Æ‡ÆˆÆ 
-ˆÆæÆæÆçÆ 
-çÆñÆñÆóÆ 
-óÆõÆõÆöÆ 
-öÆÇÇÇ 
-Ç¤Ç¤Ç¥Ç 
-¥Ç¨Ç¨Ç©Ç 
-©ÇßÇßÇãÇ 
-ãÇúÇúÇûÇ 
-ûÇßÈßÈàÈ 
-àÈõÈõÈöÈ 
-öÈ†É†É‡É 
-‡ÉÒÉÒÉÓÉ 
-ÓÉÔÉÔÉÕÉ 
-ÕÉèÉèÉéÉ 
-éÉëÉëÉìÉ 
-ìÉîÉîÉïÉ 
-ïÉ…Ê…Ê‡Ê 
-‡ÊÊÊÊ 
-ÊæÊæÊÜË 
-ÜËİËİËåË 
-åËæËæË›Ì 
-›ÌœÌœÌ§Ì 
-§Ì¨Ì¨Ì·Ì 
-·Ì¹Ì¹ÌºÌ 
-ºÌ»Ì»Ì¼Ì 
-¼ÌÀÌÀÌÁÌ 
-ÁÌÂÌÂÌÃÌ 
-ÃÌöÌöÌ÷Ì 
-÷ÌøÌøÌùÌ 
-ùÌ‚Í‚ÍƒÍ 
-ƒÍ„Í„Í…Í 
-…ÍÍÍÓÍ 
-ÓÍÔÍÔÍßÍ 
-ßÍàÍàÍêÍ 
-êÍñÍñÍòÍ 
-òÍóÍóÍùÍ 
-ùÍúÍúÍ¯Î 
-¯Î°Î°Î»Î 
-»Î¼Î¼ÎÌÎ 
-ÌÎÏÎÏÎĞÎ 
-ĞÎÖÎÖÎ‹Ï 
-‹ÏŒÏŒÏ—Ï 
-—Ï˜Ï˜Ï¨Ï 
-¨Ï«Ï«Ï¬Ï 
-¬Ï²Ï²ÏçÏ 
-çÏèÏèÏóÏ 
-óÏôÏôÏ„Ğ 
-„Ğ‡Ğ‡ĞˆĞ 
-ˆĞĞĞÃĞ 
-ÃĞÄĞÄĞÏĞ 
-ÏĞĞĞĞĞàĞ 
-àĞãĞãĞäĞ 
-äĞêĞêĞŸÑ 
-ŸÑ Ñ Ñ«Ñ 
-«Ñ¬Ñ¬Ñ¼Ñ 
-¼Ñ¿Ñ¿ÑÀÑ 
-ÀÑÆÑÆÑûÑ 
-ûÑüÑüÑ‡Ò 
-‡ÒˆÒˆÒ’Ò 
-’Ò™Ò™ÒšÒ 
-šÒ›Ò›Ò¡Ò 
-¡Ò¢Ò¢Ò×Ò 
-×ÒØÒØÒãÒ 
-ãÒäÒäÒôÒ 
-ôÒ÷Ò÷ÒøÒ 
-øÒşÒşÒ³Ó 
-³Ó´Ó´Ó¿Ó 
-¿ÓÀÓÀÓĞÓ 
-ĞÓÓÓÓÓÔÓ 
-ÔÓÚÓÚÓÔ 
-ÔÔÔ›Ô 
-›ÔœÔœÔ¬Ô 
-¬Ô¯Ô¯Ô°Ô 
-°Ô¶Ô¶ÔëÔ 
-ëÔìÔìÔ÷Ô 
-÷ÔøÔøÔ„Õ 
-„Õ…Õ…ÕˆÕ 
-ˆÕ‹Õ‹ÕŒÕ 
-ŒÕÕÕ‘Õ 
-‘Õ“Õ“ÕÇÕ 
-ÇÕÈÕÈÕÓÕ 
-ÓÕÔÕÔÕäÕ 
-äÕçÕçÕèÕ 
-èÕîÕîÕ£Ö 
-£Ö¤Ö¤Ö¯Ö 
-¯Ö°Ö°Ö·Ö 
-·ÖÁÖÁÖÂÖ 
-ÂÖÃÖÃÖÉÖ 
-ÉÖÊÖÊÖÿÖ 
-ÿÖ€×€×‹× 
-‹×Œ×Œ×œ× 
-œ×Ÿ×Ÿ× × 
- ×¦×¦×Û× 
-Û×İ×İ×ç× 
-ç×è×è×ò× 
-ò×ù×ù×ú× 
-ú×û×û×Ø 
-Ø‚Ø‚Ø·Ø 
-·Ø¹Ø¹ØÃØ 
-ÃØÄØÄØÔØ 
-ÔØ×Ø×ØØØ 
-ØØŞØŞØ“Ù 
-“Ù”Ù”ÙŸÙ 
-ŸÙ Ù Ù°Ù 
-°Ù³Ù³Ù´Ù 
-´ÙºÙºÙïÙ 
-ïÙğÙğÙûÙ 
-ûÙüÙüÙŒÚ 
-ŒÚÚÚÚ 
-Ú–Ú–ÚËÚ 
-ËÚÌÚÌÚ×Ú 
-×ÚØÚØÚèÚ 
-èÚïÚïÚñÚ 
-ñÚóÚóÚ§Û 
-§Û¨Û¨Û³Û 
-³Û´Û´ÛÄÛ 
-ÄÛÇÛÇÛÈÛ 
-ÈÛÎÛÎÛƒÜ 
-ƒÜ„Ü„ÜÜ 
-ÜÜÜ—Ü 
-—Ü™Ü™Ü Ü 
- ÜªÜªÜßÜ 
-ßÜàÜàÜëÜ 
-ëÜìÜìÜóÜ 
-óÜõÜõÜüÜ 
-üÜ†İ†İ»İ 
-»İ¼İ¼İÇİ 
-ÇİÈİÈİÒİ 
-ÒİÙİÙİÚİ 
-ÚİÛİÛİáİ 
-áİâİâİ—Ş 
-—Ş˜Ş˜Ş£Ş 
-£Ş¤Ş¤Ş´Ş 
-´Ş·Ş·Ş¸Ş 
-¸Ş¾Ş¾ŞóŞ 
-óŞôŞôŞÿŞ 
-ÿŞ€ß€ßß 
-ß›ß›ßÏß 
-ÏßĞßĞßÛß 
-ÛßÜßÜßìß 
-ìßïßïßğß 
-ğßößöß«à 
-«à¬à¬à·à 
-·à¸à¸àÈà 
-ÈàËàËàÌà 
-ÌàÒàÒà‡á 
-‡áˆáˆá“á 
-“á”á”áá 
-ááá¤á 
-¤á¯á¯áãá 
-ãáäáäáïá 
-ïáğáğá€â 
-€âƒâƒâ„â 
-„âŠâŠâ¿â 
-¿âÀâÀâËâ 
-ËâÌâÌâÖâ 
-ÖâÛâÛâÜâ 
-Üâßâßâåâ 
-åâæâæâ›ã 
-›ãœãœã§ã 
-§ã¨ã¨ã±ã 
-±ã³ã³ã¸ã 
-¸ãÂãÂã÷ã 
-÷ãøãøãƒä 
-ƒä„ä„ä‹ä 
-‹ä•ä•ä–ä 
-–ä—ä—ä˜ä 
-˜ä›ä›ää 
-äääŸä 
-Ÿä¥ä¥ä¦ä 
-¦äñäñä›æ 2dfile:///Users/danknauss/Desktop/Security/MD%20WP%20Sec%20Benchmark/CIS-WordPress-Benchmark-v1.0.0.md
