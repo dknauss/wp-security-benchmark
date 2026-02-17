@@ -211,15 +211,11 @@ Verify that PHP processing is denied for the uploads directory.
 **Remediation:**
 
 For Nginx, add to the server block:
-```
-location ~\* /wp-content/uploads/.\*\.php$ {
-```
-
-```
-deny all;
-```
-
+```nginx
+location ~* /wp-content/uploads/.*\.php$ {
+  deny all;
 }
+```
 For Apache, create wp-content/uploads/.htaccess:
 ```apache
 <FilesMatch "\.php$">
@@ -736,19 +732,12 @@ A 200 response indicates XML-RPC is accessible. A 403 or 404 indicates it is blo
 
 Block at the web server level (preferred).
 For Nginx:
-```
+```nginx
 location = /xmlrpc.php {
-```
-
-```
-deny all;
-```
-
-```
-return 403;
-```
-
+  deny all;
+  return 403;
 }
+```
 Or disable via `wp-config.php`:
 `add_filter( 'xmlrpc_enabled', '__return_false' );`
 (Place in a must-use plugin, not `wp-config.php` directly.)
@@ -965,27 +954,17 @@ Verify a filter is in place to limit session lifetime.
 **Remediation:**
 
 Add a must-use plugin (wp-content/mu-plugins/session-limits.php):
+```php
 add_filter( 'auth_cookie_expiration', function( $expiration, $user_id, $remember ) {
-
-```
-$user = get_userdata( $user_id );
-```
-
-```
-if ( in_array( 'administrator', $user->roles ) ) {
-```
-
-```
-return 8 \* HOUR_IN_SECONDS; // 8 hours for admins
-```
-
-}
-
-```
-return 24 \* HOUR_IN_SECONDS; // 24 hours for others
-```
-
+  $user = get_userdata( $user_id );
+  
+  if ( in_array( 'administrator', $user->roles ) ) {
+    return 8 * HOUR_IN_SECONDS; // 8 hours for admins
+  }
+  
+  return 24 * HOUR_IN_SECONDS; // 24 hours for others
 }, 10, 3 );
+```
 
 **Default Value:** 48 hours (2 days) without 'Remember Me'; 14 days with 'Remember Me'.
 
