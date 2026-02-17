@@ -44,7 +44,7 @@ The guidance draws on many WordPress security resources and standards, such as t
 This benchmark defines two configuration profiles:
 
 | Level       | Description |
-| ———-- | — |
+| ----------- | ----------- |
 | **Level 1** | Essential security settings that can be implemented on any WordPress deployment with minimal impact on functionality or performance. These form a baseline security posture that every site should meet. Implementing Level 1 items should not significantly inhibit the usability of the technology. |
 | **Level 2** | Defense-in-depth settings intended for high-security environments. These recommendations may restrict functionality, require additional tooling, or involve operational overhead. They are appropriate for sites handling sensitive data, regulated industries, or high-value targets. |
 
@@ -116,7 +116,7 @@ Restart the web server after changes.
 
 For Nginx, inspect the response headers:
 ```
-$ curl -sI https://example.com \| grep -iE '(content-security\|x-content-type\|x-frame\|strict-transport\|referrer-policy\|permissions-policy)'
+$ curl -sI https://example.com | grep -iE '(content-security|x-content-type|x-frame|strict-transport|referrer-policy|permissions-policy)'
 ```
 Verify all six headers are present.
 
@@ -124,32 +124,32 @@ Verify all six headers are present.
 
 For Nginx, add to the server block:
 ```
-add_header X-Content-Type-Options \"nosniff\" always;
+add_header X-Content-Type-Options "nosniff" always;
 ```
 
 ```
-add_header X-Frame-Options \"SAMEORIGIN\" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
 ```
 
 ```
-add_header Referrer-Policy \"strict-origin-when-cross-origin\" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 ```
 
 ```
-add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 ```
 
 ```
-add_header Permissions-Policy \"geolocation=(), camera=(), microphone=()\" always;
+add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
 ```
 
 ```
-add_header Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';\" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" always;
 ```
 For Apache, use the Headers module:
-Header always set X-Content-Type-Options \"nosniff\"
+Header always set X-Content-Type-Options "nosniff"
 
-Header always set X-Frame-Options \"SAMEORIGIN\"
+Header always set X-Frame-Options "SAMEORIGIN"
 
 **Default Value:** No security headers are set by default.
 
@@ -172,7 +172,7 @@ OWASP Secure Headers Project
 **Audit:**
 
 ```
-$ curl -sI https://example.com \| grep -i 'server'
+$ curl -sI https://example.com | grep -i 'server'
 ```
 Verify the Server header does not contain version numbers.
 
@@ -208,7 +208,7 @@ ServerSignature Off
 
 For Nginx, verify a location block exists for uploads:
 ```
-$ grep -A5 'uploads' /etc/nginx/sites-enabled/\*
+$ grep -A5 'uploads' /etc/nginx/sites-enabled/*
 ```
 Verify that PHP processing is denied for the uploads directory.
 
@@ -216,7 +216,7 @@ Verify that PHP processing is denied for the uploads directory.
 
 For Nginx, add to the server block:
 ```
-location ~\* /wp-content/uploads/.\*\.php$ {
+location ~* /wp-content/uploads/.*\.php$ {
 ```
 
 ```
@@ -225,11 +225,11 @@ deny all;
 
 }
 For Apache, create wp-content/uploads/.htaccess:
-\<FilesMatch \"\.php$\"\>
+<FilesMatch "\.php$">
 
 Require all denied
 
-\</FilesMatch\>
+</FilesMatch>
 
 **Default Value:** PHP execution is allowed in all directories by default.
 
@@ -306,9 +306,9 @@ This section provides recommendations for securing the PHP runtime environment.
 **Audit:**
 
 ```
-$ php -i \| grep expose_php
+$ php -i | grep expose_php
 ```
-Verify the output shows 'expose_php =\> Off =\> Off'.
+Verify the output shows 'expose_php => Off => Off'.
 
 **Remediation:**
 
@@ -336,9 +336,9 @@ Restart PHP-FPM or the web server.
 **Audit:**
 
 ```
-$ php -i \| grep display_errors
+$ php -i | grep display_errors
 ```
-Verify: 'display_errors =\> Off =\> Off'.
+Verify: 'display_errors => Off => Off'.
 
 **Remediation:**
 
@@ -377,7 +377,7 @@ error_log = /var/log/php/error.log
 **Audit:**
 
 ```
-$ php -i \| grep disable_functions
+$ php -i | grep disable_functions
 ```
 Verify the output includes dangerous functions.
 
@@ -408,7 +408,7 @@ disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_e
 **Audit:**
 
 ```
-$ php -i \| grep open_basedir
+$ php -i | grep open_basedir
 ```
 Verify a restricted path is configured.
 
@@ -437,7 +437,7 @@ open_basedir = /var/www/example.com:/tmp:/usr/share/php
 **Audit:**
 
 ```
-$ php -i \| grep -E 'session\.(cookie_secure\|cookie_httponly\|cookie_samesite\|use_strict_mode)'
+$ php -i | grep -E 'session\.(cookie_secure|cookie_httponly|cookie_samesite|use_strict_mode)'
 ```
 Verify all are set to appropriate secure values.
 
@@ -497,9 +497,9 @@ Verify the user has privileges only on the WordPress database and only the requi
 
 **Remediation:**
 
-REVOKE ALL PRIVILEGES ON \*.\* FROM 'wp_user'@'localhost';
+REVOKE ALL PRIVILEGES ON *.* FROM 'wp_user'@'localhost';
 
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP ON wp_database.\* TO 'wp_user'@'localhost';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP ON wp_database.* TO 'wp_user'@'localhost';
 
 FLUSH PRIVILEGES;
 
@@ -521,11 +521,11 @@ FLUSH PRIVILEGES;
 **Audit:**
 
 ```
-$ grep -E 'bind-address\|skip-networking' /etc/mysql/mysql.conf.d/mysqld.cnf
+$ grep -E 'bind-address|skip-networking' /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 Verify bind-address is 127.0.0.1 or ::1.
 ```
-$ ss -tlnp \| grep 3306
+$ ss -tlnp | grep 3306
 ```
 Verify MySQL is listening only on 127.0.0.1:3306.
 
@@ -590,7 +590,7 @@ Use a short, random string. Do not use personally identifiable or guessable valu
 **Audit:**
 
 ```
-$ grep -E '(general_log\|slow_query_log)' /etc/mysql/mysql.conf.d/mysqld.cnf
+$ grep -E '(general_log|slow_query_log)' /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 Verify at minimum slow_query_log is enabled.
 
@@ -697,7 +697,7 @@ Add to `wp-config.php`:
 **Audit:**
 
 ```
-$ grep -E 'WP_DEBUG\|WP_DEBUG_DISPLAY\|WP_DEBUG_LOG' /path/to/wp-config.php
+$ grep -E 'WP_DEBUG|WP_DEBUG_DISPLAY|WP_DEBUG_LOG' /path/to/wp-config.php
 ```
 Verify `WP_DEBUG` and `WP_DEBUG_DISPLAY` are `false`.
 If `WP_DEBUG_LOG` is enabled, verify the log path is outside the web root or blocked by the web server.
@@ -781,11 +781,11 @@ Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by
 **Audit:**
 
 ```
-$ wp config get WP_AUTO_UPDATE_CORE \--path=/path/to/wordpress 2\>/dev/null
+$ wp config get WP_AUTO_UPDATE_CORE --path=/path/to/wordpress 2>/dev/null
 ```
 
 ```
-$ grep 'WP_AUTO_UPDATE_CORE\\|AUTOMATIC_UPDATER_DISABLED' /path/to/wp-config.php
+$ grep 'WP_AUTO_UPDATE_CORE\|AUTOMATIC_UPDATER_DISABLED' /path/to/wp-config.php
 ```
 Verify `WP_AUTO_UPDATE_CORE` is not set to `false` and `AUTOMATIC_UPDATER_DISABLED` is not `true`.
 
@@ -814,7 +814,7 @@ Optionally, explicitly enable minor updates:
 **Audit:**
 
 ```
-$ grep -E '(AUTH_KEY\|SECURE_AUTH_KEY\|LOGGED_IN_KEY\|NONCE_KEY\|AUTH_SALT\|SECURE_AUTH_SALT\|LOGGED_IN_SALT\|NONCE_SALT)' /path/to/wp-config.php
+$ grep -E '(AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT)' /path/to/wp-config.php
 ```
 Verify all eight constants are defined with long, unique random strings. None should be 'put your unique phrase here' (the placeholder value).
 
@@ -976,17 +976,17 @@ $user = get_userdata( $user_id );
 ```
 
 ```
-if ( in_array( 'administrator', $user-\>roles ) ) {
+if ( in_array( 'administrator', $user->roles ) ) {
 ```
 
 ```
-return 8 \* HOUR_IN_SECONDS; // 8 hours for admins
+return 8 * HOUR_IN_SECONDS; // 8 hours for admins
 ```
 
 }
 
 ```
-return 24 \* HOUR_IN_SECONDS; // 24 hours for others
+return 24 * HOUR_IN_SECONDS; // 24 hours for others
 ```
 
 }, 10, 3 );
@@ -1011,7 +1011,7 @@ return 24 \* HOUR_IN_SECONDS; // 24 hours for others
 **Audit:**
 
 ```
-$ curl -s https://example.com/wp-json/wp/v2/users \| python3 -m json.tool
+$ curl -s https://example.com/wp-json/wp/v2/users | python3 -m json.tool
 ```
 If the response returns user data, enumeration is possible.
 ```
@@ -1415,11 +1415,11 @@ Verify no unused plugins or themes are present (one default/fallback theme is ac
 **Remediation:**
 
 ```
-$ wp plugin delete \<plugin-name\> \--path=/path/to/wordpress
+$ wp plugin delete <plugin-name> --path=/path/to/wordpress
 ```
 
 ```
-$ wp theme delete \<theme-name\> \--path=/path/to/wordpress
+$ wp theme delete <theme-name> --path=/path/to/wordpress
 ```
 Retain only the active theme and one default WordPress theme as a fallback.
 
