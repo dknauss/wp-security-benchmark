@@ -1,20 +1,13 @@
-# NLM WordPress Benchmark #
+# WordPress Benchmark — DRAFT
 
 **Full Stack Hardening Guide**
-
-v1.0.0 — February 2026
-
-**DRAFT**
 
 WordPress 6.x on Linux (Ubuntu/Debian)
 
 Nginx or Apache • PHP 8.x • MySQL 8.x / MariaDB 10.x+
 
-*Format adapted from industry-standard benchmarks*
-
-
-Authored by Dan Knauss 
-dan@newlocalmedia.com
+Dan Knauss
+February 16, 2026
 
 
 ## Overview
@@ -23,7 +16,7 @@ This document provides prescriptive guidance for establishing a secure configura
 
 This benchmark is intended for system administrators, security engineers, DevOps teams, and WordPress developers responsible for deploying and maintaining WordPress installations in enterprise environments.
 
-The guidance draws on many WordPress security resources and standards, such as the OWASP Top 10 (2021), NIST SP 800-63B, and field experience with enterprise WordPress hardening.
+The guidance draws on many WordPress security resources and standards, such as the OWASP Top 10 (2025), NIST SP 800-63B, and field experience with enterprise WordPress hardening.
 
 ## Target Technology
 
@@ -33,7 +26,7 @@ The guidance draws on many WordPress security resources and standards, such as t
 
 -   Nginx 1.24+ or Apache 2.4+
 
--   PHP 8.1+ (8.2+ recommended)
+-   PHP 8.2+ (8.3+ recommended for new deployments)
 
 -   MySQL 8.0+ or MariaDB 10.6+
 
@@ -948,7 +941,7 @@ Review the list. Verify that each admin account is actively needed and assigned 
 
 #### 5.3 Ensure maximum session lifetime is enforced
 
-**Profile Applicability:** **Level 2**
+**Profile Applicability:** **Level 1**
 
 **Assessment Status:** Automated
 
@@ -1119,7 +1112,7 @@ add_filter( 'rest_authentication_errors', function( $result ) {
 
 **Impact:** Users may need to update existing weak passwords. Requires a plugin for advanced enforcement (e.g., Wordfence, iThemes Security, or Passthrough Authentication).
 
-**Note on Password Hashing:** As of WordPress 6.8, user passwords are hashed with bcrypt by default. Argon2id is supported on compatible PHP environments and provides stronger resistance to GPU-accelerated brute-force attacks. For high-security deployments, consider adopting Argon2id via a dedicated plugin or custom implementation.
+**Note on Password Hashing:** As of WordPress 6.8, user passwords are hashed with bcrypt by default. Argon2id is supported on compatible PHP environments and provides stronger resistance to GPU-accelerated brute-force attacks. For high-security deployments, consider enabling Argon2id via the `wp_hash_password` core filter, typically implemented as a must-use plugin.
 
 **Audit:**
 
@@ -1230,7 +1223,7 @@ sudo find /path/to/wordpress/ -type f -exec chmod 640 {} \;
 ```
 
 ```
-sudo chmod 660 /path/to/wordpress/wp-config.php
+sudo chmod 640 /path/to/wordpress/wp-config.php
 
 # Allow web server to write to uploads (if needed)
 sudo find /path/to/wordpress/wp-content/uploads -type d -exec chmod 775 {} \;
@@ -1532,6 +1525,8 @@ For Cloud WAF:
 
 **Default Value:** No WAF is configured by default.
 
+**Note:** While this benchmark classifies WAF as Level 2, enterprise WordPress deployments should treat WAF as a baseline requirement. See the companion WordPress Security White Paper for extended enterprise guidance.
+
 **References:** https://coreruleset.org/
 https://github.com/coreruleset/wordpress-rule-exclusions-plugin
 
@@ -1577,6 +1572,93 @@ This is a manual check. Verify that:
 
 —
 
+### 11. AI and Generative AI Security
+
+AI tools are increasingly integrated into WordPress workflows for content generation, chatbots, code assistance, and site management. IBM's Cost of a Data Breach Report (2025) found that 13% of organizations experienced a breach involving an AI model or application, and 97% of those breaches involved systems lacking proper access controls. This section provides controls for securing AI integrations in WordPress environments.
+
+#### 11.1 Ensure AI API keys are securely stored
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Automated
+
+**Description:** API keys and credentials for AI/LLM services (OpenAI, Anthropic, Google, etc.) must be stored securely and never exposed in client-side code, version control, or the WordPress database.
+
+**Rationale:** AI API keys grant access to paid services and may allow data exfiltration or abuse. The Verizon DBIR (2025) found that leaked secrets in code repositories had a median remediation time of 94 days, with 66% being JSON Web Tokens. AI API keys are similarly at risk.
+
+**Impact:** Requires using `wp-config.php` constants or environment variables rather than storing keys in plugin settings (database).
+
+**Audit:**
+
+1. Search the codebase and database for AI service API keys:
+```bash
+grep -r "sk-" /path/to/wordpress/wp-content/ --include="*.php"
+wp db query "SELECT option_name, option_value FROM wp_options WHERE option_value LIKE '%sk-%' OR option_value LIKE '%key-%'" --allow-root
+```
+2. Verify API keys are defined as constants in `wp-config.php` or loaded from environment variables.
+3. Confirm `.gitignore` excludes `wp-config.php` and environment files.
+
+**Remediation:**
+
+1. Move all AI API keys to `wp-config.php` constants (e.g., `define('OPENAI_API_KEY', getenv('OPENAI_API_KEY'));`).
+2. Remove any API keys stored in the `wp_options` table or in plugin settings screens.
+3. Rotate any keys that have been exposed in version control or client-side code.
+
+**Default Value:** Most AI plugins store API keys in the database via the WordPress settings API.
+
+#### 11.2 Ensure AI-generated content is sanitized
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Manual
+
+**Description:** All content generated by AI services must be treated as untrusted input and sanitized before rendering or storage, using WordPress's standard escaping functions (`esc_html()`, `wp_kses()`, `esc_attr()`, etc.).
+
+**Rationale:** AI models can generate content that includes XSS payloads, SQL injection patterns, or malicious HTML — either through prompt injection attacks or as a natural consequence of model behavior. Treating AI output as trusted input bypasses WordPress's defense-in-depth sanitization model.
+
+**Impact:** Minimal. Requires using existing WordPress sanitization functions on AI output, which is consistent with standard development practice for any external data source.
+
+**Audit:**
+
+Review custom AI integration code for direct output of AI-generated content without sanitization. Check that AI responses pass through WordPress escaping functions before being stored in post content, meta fields, or rendered in templates.
+
+**Remediation:**
+
+1. Apply `wp_kses_post()` to AI-generated content before storing in `post_content`.
+2. Apply `esc_html()` or `esc_attr()` before rendering in HTML templates.
+3. Never pass AI-generated content directly to `$wpdb->query()` without `$wpdb->prepare()`.
+
+**Default Value:** No WordPress-specific defaults; depends on plugin implementation.
+
+#### 11.3 Ensure AI tool usage is governed by policy
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** Organizations must maintain and enforce a policy governing the use of AI tools by WordPress team members and integrated into WordPress sites. The policy must address approved tools, data classification for AI inputs, authentication requirements, and disclosure of AI-generated content.
+
+**Rationale:** Shadow AI — the unsanctioned use of AI tools by employees — is a measurable risk. IBM's Cost of a Data Breach Report (2025) found that 20% of breached organizations experienced a shadow AI incident, adding $200,000 to average breach costs, and that 63% of organizations lack AI governance policies. The Verizon DBIR (2025) found that 15% of employees routinely access GenAI systems on corporate devices, with 72% using non-corporate email accounts.
+
+**Impact:** Requires organizational policy development and enforcement. May restrict which AI plugins can be installed on WordPress sites.
+
+**Audit:**
+
+1. Verify that a written AI acceptable use policy exists and has been communicated to all WordPress team members.
+2. Confirm that only approved AI plugins are installed on production sites.
+3. Verify that AI service authentication uses corporate SSO or managed API keys (not personal accounts).
+
+**Remediation:**
+
+1. Develop an AI acceptable use policy covering approved tools, prohibited data inputs (credentials, PII, proprietary content), and disclosure requirements.
+2. Maintain an inventory of approved AI plugins and services.
+3. Configure AI services with corporate authentication and audit logging where available.
+4. Include AI governance in security awareness training.
+
+**Default Value:** No AI governance policy exists by default.
+
+—
+
 
 ## Appendix A: Recommendation Summary
 
@@ -1607,7 +1689,7 @@ The following table summarizes all recommendations in this benchmark.
 | 4.7  | Ensure wp-cron.php is replaced with system cron     | L1        | Automated      |
 | 5.1  | Ensure 2FA is required for administrators           | L1        | Manual         |
 | 5.2  | Ensure admin accounts are minimized                 | L1        | Manual         |
-| 5.3  | Ensure max session lifetime is enforced             | L2        | Automated      |
+| 5.3  | Ensure max session lifetime is enforced             | L1        | Automated      |
 | 5.4  | Ensure user enumeration is prevented                | L1        | Automated      |
 | 5.5  | Ensure reauthentication for privileged actions      | L2        | Manual         |
 | 5.6  | Ensure unauthenticated REST API is restricted       | L2        | Automated      |
@@ -1622,8 +1704,20 @@ The following table summarizes all recommendations in this benchmark.
 | 8.2  | Ensure extensions are from trusted sources          | L1        | Manual         |
 | 8.3  | Ensure plugin/theme updates are applied promptly    | L1        | Manual         |
 | 9.1  | Ensure Web Application Firewall is Configured        | L2        | Manual         |
+| 10.1 | Ensure backup and recovery procedures are implemented | L1        | Manual         |
+| 11.1 | Ensure AI API keys are securely stored               | L1        | Automated      |
+| 11.2 | Ensure AI-generated content is sanitized             | L1        | Manual         |
+| 11.3 | Ensure AI tool usage is governed by policy           | L2        | Manual         |
 | 10.1 | Ensure backup and recovery procedures are implemented | L1       | Manual         |
 
-## License
+## Related Documents
 
-This document is licensed under the Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0). This document is an independent work.
+-   **WordPress Security Architecture and Hardening Guide** — Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security. This benchmark's technical controls complement the white paper's broader strategic guidance.
+-   **WP Security Style Guide** — Principles, terminology, and formatting conventions for writing about WordPress security.
+-   **WordPress Security White Paper (WordPress.org, September 2025)** — The official upstream document describing WordPress core security architecture, maintained at [developer.wordpress.org](https://developer.wordpress.org/apis/security/).
+
+## License and Attribution
+
+This document is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/). You may copy, redistribute, remix, transform, and build upon this material for any purpose, including commercial use, provided you give appropriate credit and distribute your contributions under the same license.
+
+**Sources and Acknowledgments:** The format of this benchmark is adapted from industry-standard benchmarks published by the Center for Internet Security (CIS). Technical guidance draws on the OWASP Top 10 (2025), NIST SP 800-63B, the Verizon Data Breach Investigations Report (2025), and IBM's Cost of a Data Breach Report (2025).
