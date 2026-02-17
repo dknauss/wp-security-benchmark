@@ -75,6 +75,8 @@ Each recommendation includes:
 
 - [WordPress Security Architecture and Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide): Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security.
 
+- [Securing WordPress](https://cio.ubc.ca/information-security/policy-standards-resources/M5/gui-securing-wordpress), an Information Security Guideline from the University of British Columbia's Office of the CIO. 
+
 - [WordPress Security Style Guide](https://github.com/dknauss/wp-security-style-guide): Principles and terminology for writing about WordPress security effectively.
 
 ## 🤝 Contributing
