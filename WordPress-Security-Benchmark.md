@@ -90,7 +90,7 @@ Restart the web server after changes.
 **Default Value:** Nginx: TLSv1 TLSv1.1 TLSv1.2 (all enabled). Apache: All protocols enabled.
 
 **References:** https://ssl-config.mozilla.org/
-—
+---
 
 
 #### 1.2 Ensure HTTP security headers are configured
@@ -149,7 +149,7 @@ Header always set X-Frame-Options \"SAMEORIGIN\"
 **References:** https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers
 OWASP Secure Headers Project
 
-—
+---
 
 
 #### 1.3 Ensure server tokens and version information are hidden
@@ -182,7 +182,7 @@ ServerSignature Off
 
 **Default Value:** Nginx: server_tokens on (version exposed). Apache: ServerTokens Full.
 
-—
+---
 
 
 #### 1.4 Ensure direct PHP execution is blocked in upload directories
@@ -228,7 +228,7 @@ Require all denied
 
 **References:** https://developer.wordpress.org/advanced-administration/security/hardening/
 
-—
+---
 
 
 #### 1.5 Ensure rate limiting is configured for all API surfaces
@@ -279,7 +279,7 @@ location ~ ^/wp-json/ {
 
 **Default Value:** No rate limiting is configured by default.
 
-—
+---
 
 
 ## 2 PHP Configuration
@@ -313,7 +313,7 @@ Restart PHP-FPM or the web server.
 
 **Default Value:** expose_php = On
 
-—
+---
 
 
 #### 2.2 Ensure display_errors is disabled in production
@@ -350,7 +350,7 @@ error_log = /var/log/php/error.log
 
 **Default Value:** display_errors = On in development configurations.
 
-—
+---
 
 
 #### 2.3 Ensure dangerous PHP functions are disabled
@@ -383,7 +383,7 @@ disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_e
 
 **Default Value:** No functions are disabled by default.
 
-—
+---
 
 
 #### 2.4 Ensure open_basedir restricts file access
@@ -414,7 +414,7 @@ open_basedir = /var/www/example.com:/tmp:/usr/share/php
 
 **Default Value:** open_basedir is not set (unrestricted).
 
-—
+---
 
 
 #### 2.5 Ensure PHP session security is configured
@@ -461,7 +461,7 @@ session.use_only_cookies = 1
 
 **References:** https://www.php.net/manual/en/session.security.ini.php
 
-—
+---
 
 
 ## 3 Database Configuration
@@ -498,7 +498,7 @@ FLUSH PRIVILEGES;
 
 **Default Value:** Depends on initial setup. Many installation guides grant ALL PRIVILEGES.
 
-—
+---
 
 
 #### 3.2 Ensure the database is not accessible from external hosts
@@ -532,7 +532,7 @@ Restart MySQL.
 
 **Default Value:** bind-address = 0.0.0.0 (listening on all interfaces) on some distributions.
 
-—
+---
 
 
 #### 3.3 Ensure a non-default table prefix is used
@@ -565,7 +565,7 @@ Use a short, random string. Do not use personally identifiable or guessable valu
 
 **Default Value:** $table_prefix = 'wp_';
 
-—
+---
 
 
 #### 3.4 Ensure database query logging is enabled
@@ -612,7 +612,7 @@ general_log_file = /var/log/mysql/mysql-general.log
 
 **Default Value:** Both logs are disabled by default.
 
-—
+---
 
 
 ## 4 WordPress Core Configuration
@@ -647,7 +647,7 @@ Add to `wp-config.php` before 'That's all, stop editing!':
 
 **References:** https://developer.wordpress.org/advanced-administration/security/hardening/
 
-—
+---
 
 
 #### 4.2 Ensure `FORCE_SSL_ADMIN` is set to true
@@ -674,7 +674,7 @@ Add to `wp-config.php`:
 
 **Default Value:** Not set (HTTPS not enforced for admin).
 
-—
+---
 
 
 #### 4.3 Ensure WordPress debug mode is disabled in production
@@ -707,7 +707,7 @@ If logging is needed, direct to a non-public path:
 
 **Default Value:** `WP_DEBUG = false` (secure by default). However, many deployment guides enable debug mode.
 
-—
+---
 
 
 #### 4.4 Ensure XML-RPC is disabled
@@ -756,7 +756,7 @@ Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by
 
 **References:** https://developer.wordpress.org/advanced-administration/security/hardening/
 
-—
+---
 
 
 #### 4.5 Ensure automatic core updates are enabled
@@ -791,7 +791,7 @@ Optionally, explicitly enable minor updates:
 
 **Default Value:** Minor auto-updates are enabled by default since WordPress 3.7.
 
-—
+---
 
 
 #### 4.6 Ensure unique authentication keys and salts are configured
@@ -823,7 +823,7 @@ Replace the key definitions in `wp-config.php` with the generated output.
 
 **References:** https://developer.wordpress.org/advanced-administration/security/hardening/
 
-—
+---
 
 
 #### 4.7 Ensure `wp-cron.php` is replaced with a system cron job
@@ -871,7 +871,7 @@ This is safe because `wp-cli` executes PHP directly and does not use HTTP.
 
 **Default Value:** `wp-cron.php` is enabled and triggered on every page load by default.
 
-—
+---
 
 
 ## 5 Authentication and Access Control
@@ -907,7 +907,7 @@ Recommended: Enforce 2FA as mandatory for admin roles with a grace period for in
 **References:** NIST SP 800-63B
 https://developer.wordpress.org/advanced-administration/security/hardening/
 
-—
+---
 
 
 #### 5.2 Ensure the number of administrator accounts is minimized
@@ -936,7 +936,7 @@ Review the list. Verify that each admin account is actively needed and assigned 
 
 **Default Value:** One administrator account is created during installation.
 
-—
+---
 
 
 #### 5.3 Ensure maximum session lifetime is enforced
@@ -986,7 +986,7 @@ return 24 \* HOUR_IN_SECONDS; // 24 hours for others
 
 **Default Value:** 48 hours (2 days) without 'Remember Me'; 14 days with 'Remember Me'.
 
-—
+---
 
 
 #### 5.4 Ensure user enumeration is prevented
@@ -1028,7 +1028,7 @@ Block author archive enumeration at the web server level or with a plugin.
 
 **Default Value:** User data is publicly accessible via the REST API and author archives.
 
-—
+---
 
 
 #### 5.5 Ensure reauthentication is required for privileged actions
@@ -1058,7 +1058,7 @@ Implement an action-gated reauthentication solution. Configure the "Action Regis
 
 **Default Value:** WordPress requires password confirmation only for profile email/password changes.
 
-—
+---
 
 
 #### 5.6 Ensure unauthenticated REST API access is restricted
@@ -1097,7 +1097,7 @@ add_filter( 'rest_authentication_errors', function( $result ) {
 
 **Default Value:** REST API is accessible to unauthenticated users.
 
-—
+---
 
 
 #### 5.7 Ensure a strong password policy is enforced
@@ -1132,7 +1132,7 @@ This is a manual check. Verify that:
 
 **References:** OWASP Authentication Cheat Sheet, NIST SP 800-63B
 
-—
+---
 
 
 #### 5.8 Ensure user roles and capabilities are defined in code
@@ -1178,7 +1178,7 @@ add_action( 'init', function() {
 
 **Default Value:** Roles are stored in the `wp_options` table and editable via plugins or direct database access.
 
-—
+---
 
 
 ## 6 File System Permissions
@@ -1232,7 +1232,7 @@ sudo find /path/to/wordpress/wp-content/uploads -type f -exec chmod 664 {} \;
 
 **Default Value:** Ownership depends on installation method. Many guides set www-data as owner.
 
-—
+---
 
 
 #### 6.2 Ensure `wp-config.php` has restrictive permissions
@@ -1264,7 +1264,7 @@ chown wp_user:wp_user /path/to/wordpress/wp-config.php
 
 **Default Value:** 644 (world-readable) in many default configurations.
 
-—
+---
 
 
 #### 6.3 Ensure `wp-config.php` is placed above the document root
@@ -1305,7 +1305,7 @@ $ chmod 750 /var/www/
 
 **Default Value:** `wp-config.php` is placed in the WordPress installation root (typically the document root) by default.
 
-—
+---
 
 
 ## 7 Logging and Monitoring
@@ -1340,7 +1340,7 @@ Export logs to a centralized SIEM for correlation (Level 2).
 
 **Default Value:** No audit logging is configured by default.
 
-—
+---
 
 
 #### 7.2 Ensure file integrity monitoring is configured
@@ -1377,7 +1377,7 @@ Verify both commands report no modifications.
 
 **References:** https://developer.wordpress.org/cli/commands/core/verify-checksums/
 
-—
+---
 
 
 #### 7.3 Ensure server-level malware detection is configured
@@ -1410,7 +1410,7 @@ This is a manual check. Verify that:
 
 **Default Value:** No malware detection is configured by default on most server environments.
 
-—
+---
 
 
 ## 8 Supply Chain and Extension Management
@@ -1451,7 +1451,7 @@ Retain only the active theme and one default WordPress theme as a fallback.
 
 **Default Value:** Default themes and example plugins (Akismet, Hello Dolly) are included in fresh installations.
 
-—
+---
 
 
 #### 8.2 Ensure all plugins and themes are from trusted sources
@@ -1481,7 +1481,7 @@ Verify each plugin is available in the WordPress.org repository or from a known 
 
 **Default Value:** WordPress allows installation from any ZIP file by default.
 
-—
+---
 
 
 #### 8.3 Ensure plugin and theme updates are applied promptly
@@ -1518,7 +1518,7 @@ Verify no security updates are pending.
 
 **References:** https://patchstack.com/database/
 
-—
+---
 
 
 #### 8.4 Ensure a Software Bill of Materials (SBOM) is maintained
@@ -1565,7 +1565,7 @@ mysql --version
 
 **Default Value:** No SBOM is maintained by default.
 
-—
+---
 
 
 ## 9 Web Application Firewall
@@ -1610,7 +1610,7 @@ For Cloud WAF:
 **References:** https://coreruleset.org/
 https://github.com/coreruleset/wordpress-rule-exclusions-plugin
 
-—
+---
 
 
 ## 10 Backup and Recovery
@@ -1650,7 +1650,7 @@ This is a manual check. Verify that:
 
 **Default Value:** No backups are configured by default. Backup responsibility depends on the hosting environment.
 
-—
+---
 
 ## 11 AI and Generative AI Security
 
@@ -1737,7 +1737,7 @@ Review custom AI integration code for direct output of AI-generated content with
 
 **Default Value:** No AI governance policy exists by default.
 
-—
+---
 
 
 ## 12 Server Access and Network
@@ -1778,7 +1778,7 @@ $ sudo systemctl restart sshd
 
 **Default Value:** Password authentication is enabled by default on most Linux distributions.
 
-—
+---
 
 
 #### 12.2 Ensure SFTP is used and FTP is disabled
@@ -1818,7 +1818,7 @@ $ grep 'Subsystem.*sftp' /etc/ssh/sshd_config
 
 **Default Value:** FTP is not installed by default on most modern Linux distributions, but may be present in legacy environments.
 
-—
+---
 
 
 #### 12.3 Ensure a host-based firewall is configured
@@ -1862,7 +1862,7 @@ sudo ufw enable
 
 **References:** https://help.ubuntu.com/community/UFW
 
-—
+---
 
 
 #### 12.4 Ensure per-site process isolation is configured
@@ -1907,7 +1907,7 @@ listen.group = www-data
 
 **Default Value:** A single `www-data` pool serves all sites by default.
 
-—
+---
 
 
 ## 13 Multisite Security
@@ -1945,7 +1945,7 @@ $ wp super-admin remove <username> --path=/path/to/wordpress
 
 **Default Value:** One Super Admin account is created during Multisite installation.
 
-—
+---
 
 
 #### 13.2 Ensure network-activated plugins are reviewed for cross-site impact
@@ -1977,7 +1977,7 @@ For each network-activated plugin, verify that network-wide activation is necess
 
 **Default Value:** No plugins are network-activated by default.
 
-—
+---
 
 
 ## Appendix A: Recommendation Summary
