@@ -11,9 +11,7 @@
 
 ## 📖 Overview
 
-The **WordPress Security Benchmark** provides prescriptive, actionable guidance for establishing a secure configuration posture for WordPress 6.x running on a modern Linux server stack. 
-
-This guide covers the **entire stack**, moving beyond simple plugin-based security to address hardening at the OS, Web Server, PHP, and Database layers.
+The **WordPress Security Benchmark** provides prescriptive, actionable guidance for establishing a secure configuration posture for WordPress 6.x running on a modern Linux server stack. This guide covers the entire stack to address hardening at the OS, Web Server, PHP, and Database layers.
 
 ### Key Focus Areas:
 - 🛡️ **Web Server Hardening** (Nginx & Apache)
