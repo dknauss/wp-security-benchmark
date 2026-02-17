@@ -119,32 +119,33 @@ Verify all six headers are present.
 
 For Nginx, add to the server block:
 ```
-add_header X-Content-Type-Options \"nosniff\" always;
+add_header X-Content-Type-Options "nosniff" always;
 ```
 
 ```
-add_header X-Frame-Options \"SAMEORIGIN\" always;
+add_header X-Frame-Options "SAMEORIGIN" always;
 ```
 
 ```
-add_header Referrer-Policy \"strict-origin-when-cross-origin\" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 ```
 
 ```
-add_header Strict-Transport-Security \"max-age=31536000; includeSubDomains\" always;
+add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 ```
 
 ```
-add_header Permissions-Policy \"geolocation=(), camera=(), microphone=()\" always;
+add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
 ```
 
 ```
-add_header Content-Security-Policy \"default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';\" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" always;
 ```
 For Apache, use the Headers module:
-Header always set X-Content-Type-Options \"nosniff\"
-
-Header always set X-Frame-Options \"SAMEORIGIN\"
+```apache
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "SAMEORIGIN"
+```
 
 **Default Value:** No security headers are set by default.
 
@@ -482,18 +483,28 @@ This section covers MySQL/MariaDB configuration relevant to WordPress security.
 **Audit:**
 
 Run as the MySQL root user:
+```sql
 SELECT user, host FROM mysql.user;
+```
 
+```sql
 SHOW GRANTS FOR 'wp_user'@'localhost';
+```
 Verify the user has privileges only on the WordPress database and only the required types.
 
 **Remediation:**
 
-REVOKE ALL PRIVILEGES ON \*.\* FROM 'wp_user'@'localhost';
+```sql
+REVOKE ALL PRIVILEGES ON *.* FROM 'wp_user'@'localhost';
+```
 
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP ON wp_database.\* TO 'wp_user'@'localhost';
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP ON wp_database.* TO 'wp_user'@'localhost';
+```
 
+```sql
 FLUSH PRIVILEGES;
+```
 
 **Default Value:** Depends on initial setup. Many installation guides grant ALL PRIVILEGES.
 
@@ -770,7 +781,7 @@ $ wp config get WP_AUTO_UPDATE_CORE --path=/path/to/wordpress 2>/dev/null
 ```
 
 ```
-$ grep 'WP_AUTO_UPDATE_CORE\\|AUTOMATIC_UPDATER_DISABLED' /path/to/wp-config.php
+$ grep 'WP_AUTO_UPDATE_CORE\|AUTOMATIC_UPDATER_DISABLED' /path/to/wp-config.php
 ```
 Verify `WP_AUTO_UPDATE_CORE` is not set to `false` and `AUTOMATIC_UPDATER_DISABLED` is not `true`.
 
