@@ -37,7 +37,7 @@ The guidance draws on many WordPress security resources and standards, such as t
 This benchmark defines two configuration profiles:
 
 | Level       | Description |
-| ———-- | — |
+| :---------- | :---------- |
 | **Level 1** | Essential security settings that can be implemented on any WordPress deployment with minimal impact on functionality or performance. These form a baseline security posture that every site should meet. Implementing Level 1 items should not significantly inhibit the usability of the technology. |
 | **Level 2** | Defense-in-depth settings intended for high-security environments. These recommendations may restrict functionality, require additional tooling, or involve operational overhead. They are appropriate for sites handling sensitive data, regulated industries, or high-value targets. |
 
@@ -80,11 +80,13 @@ Verify the output shows 'all -SSLv3 -TLSv1 -TLSv1.1' or equivalent.
 **Remediation:**
 
 For Nginx, set in the server or http block:
-```
+```nginx
 ssl_protocols TLSv1.2 TLSv1.3;
 ```
 For Apache, set in the VirtualHost or global config:
+```apache
 SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
+```
 Restart the web server after changes.
 
 **Default Value:** Nginx: TLSv1 TLSv1.1 TLSv1.2 (all enabled). Apache: All protocols enabled.
@@ -109,7 +111,7 @@ Restart the web server after changes.
 
 For Nginx, inspect the response headers:
 ```
-$ curl -sI https://example.com \| grep -iE '(content-security\|x-content-type\|x-frame\|strict-transport\|referrer-policy\|permissions-policy)'
+$ curl -sI https://example.com | grep -iE '(content-security\|x-content-type\|x-frame\|strict-transport\|referrer-policy\|permissions-policy)'
 ```
 Verify all six headers are present.
 
@@ -165,7 +167,7 @@ OWASP Secure Headers Project
 **Audit:**
 
 ```
-$ curl -sI https://example.com \| grep -i 'server'
+$ curl -sI https://example.com | grep -i 'server'
 ```
 Verify the Server header does not contain version numbers.
 
@@ -176,9 +178,10 @@ For Nginx:
 server_tokens off;
 ```
 For Apache:
+```apache
 ServerTokens Prod
-
 ServerSignature Off
+```
 
 **Default Value:** Nginx: server_tokens on (version exposed). Apache: ServerTokens Full.
 
@@ -208,21 +211,17 @@ Verify that PHP processing is denied for the uploads directory.
 **Remediation:**
 
 For Nginx, add to the server block:
-```
-location ~\* /wp-content/uploads/.\*\.php$ {
-```
-
-```
-deny all;
-```
-
+```nginx
+location ~* /wp-content/uploads/.*\.php$ {
+  deny all;
 }
+```
 For Apache, create wp-content/uploads/.htaccess:
-\<FilesMatch \"\.php$\"\>
-
-Require all denied
-
-\</FilesMatch\>
+```apache
+<FilesMatch "\.php$">
+  Require all denied
+</FilesMatch>
+```
 
 **Default Value:** PHP execution is allowed in all directories by default.
 
@@ -299,9 +298,9 @@ This section provides recommendations for securing the PHP runtime environment.
 **Audit:**
 
 ```
-$ php -i \| grep expose_php
+$ php -i | grep expose_php
 ```
-Verify the output shows 'expose_php =\> Off =\> Off'.
+Verify the output shows 'expose_php => Off => Off'.
 
 **Remediation:**
 
@@ -329,9 +328,9 @@ Restart PHP-FPM or the web server.
 **Audit:**
 
 ```
-$ php -i \| grep display_errors
+$ php -i | grep display_errors
 ```
-Verify: 'display_errors =\> Off =\> Off'.
+Verify: 'display_errors => Off => Off'.
 
 **Remediation:**
 
@@ -370,7 +369,7 @@ error_log = /var/log/php/error.log
 **Audit:**
 
 ```
-$ php -i \| grep disable_functions
+$ php -i | grep disable_functions
 ```
 Verify the output includes dangerous functions.
 
@@ -401,7 +400,7 @@ disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_e
 **Audit:**
 
 ```
-$ php -i \| grep open_basedir
+$ php -i | grep open_basedir
 ```
 Verify a restricted path is configured.
 
@@ -430,7 +429,7 @@ open_basedir = /var/www/example.com:/tmp:/usr/share/php
 **Audit:**
 
 ```
-$ php -i \| grep -E 'session\.(cookie_secure\|cookie_httponly\|cookie_samesite\|use_strict_mode)'
+$ php -i | grep -E 'session\.(cookie_secure\|cookie_httponly\|cookie_samesite\|use_strict_mode)'
 ```
 Verify all are set to appropriate secure values.
 
@@ -518,7 +517,7 @@ $ grep -E 'bind-address\|skip-networking' /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 Verify bind-address is 127.0.0.1 or ::1.
 ```
-$ ss -tlnp \| grep 3306
+$ ss -tlnp | grep 3306
 ```
 Verify MySQL is listening only on 127.0.0.1:3306.
 
@@ -733,19 +732,12 @@ A 200 response indicates XML-RPC is accessible. A 403 or 404 indicates it is blo
 
 Block at the web server level (preferred).
 For Nginx:
-```
+```nginx
 location = /xmlrpc.php {
-```
-
-```
-deny all;
-```
-
-```
-return 403;
-```
-
+  deny all;
+  return 403;
 }
+```
 Or disable via `wp-config.php`:
 `add_filter( 'xmlrpc_enabled', '__return_false' );`
 (Place in a must-use plugin, not `wp-config.php` directly.)
@@ -774,7 +766,7 @@ Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by
 **Audit:**
 
 ```
-$ wp config get WP_AUTO_UPDATE_CORE \--path=/path/to/wordpress 2\>/dev/null
+$ wp config get WP_AUTO_UPDATE_CORE --path=/path/to/wordpress 2>/dev/null
 ```
 
 ```
@@ -923,7 +915,7 @@ https://developer.wordpress.org/advanced-administration/security/hardening/
 **Audit:**
 
 ```
-$ wp user list \--role=administrator \--fields=ID,user_login,user_email \--path=/path/to/wordpress
+$ wp user list --role=administrator --fields=ID,user_login,user_email --path=/path/to/wordpress
 ```
 Review the list. Verify that each admin account is actively needed and assigned to a specific individual.
 
@@ -962,27 +954,17 @@ Verify a filter is in place to limit session lifetime.
 **Remediation:**
 
 Add a must-use plugin (wp-content/mu-plugins/session-limits.php):
+```php
 add_filter( 'auth_cookie_expiration', function( $expiration, $user_id, $remember ) {
-
-```
-$user = get_userdata( $user_id );
-```
-
-```
-if ( in_array( 'administrator', $user-\>roles ) ) {
-```
-
-```
-return 8 \* HOUR_IN_SECONDS; // 8 hours for admins
-```
-
-}
-
-```
-return 24 \* HOUR_IN_SECONDS; // 24 hours for others
-```
-
+  $user = get_userdata( $user_id );
+  
+  if ( in_array( 'administrator', $user->roles ) ) {
+    return 8 * HOUR_IN_SECONDS; // 8 hours for admins
+  }
+  
+  return 24 * HOUR_IN_SECONDS; // 24 hours for others
 }, 10, 3 );
+```
 
 **Default Value:** 48 hours (2 days) without 'Remember Me'; 14 days with 'Remember Me'.
 
@@ -1004,7 +986,7 @@ return 24 \* HOUR_IN_SECONDS; // 24 hours for others
 **Audit:**
 
 ```
-$ curl -s https://example.com/wp-json/wp/v2/users \| python3 -m json.tool
+$ curl -s https://example.com/wp-json/wp/v2/users | python3 -m json.tool
 ```
 If the response returns user data, enumeration is possible.
 ```
@@ -1359,11 +1341,11 @@ Export logs to a centralized SIEM for correlation (Level 2).
 
 For WordPress core integrity:
 ```
-$ wp core verify-checksums \--path=/path/to/wordpress
+$ wp core verify-checksums --path=/path/to/wordpress
 ```
 For plugin integrity:
 ```
-$ wp plugin verify-checksums \--all \--path=/path/to/wordpress
+$ wp plugin verify-checksums --all --path=/path/to/wordpress
 ```
 Verify both commands report no modifications.
 
@@ -1430,22 +1412,22 @@ This section addresses the security of WordPress plugins, themes, and their upda
 **Audit:**
 
 ```
-$ wp plugin list \--status=inactive \--fields=name,version \--path=/path/to/wordpress
+$ wp plugin list --status=inactive --fields=name,version --path=/path/to/wordpress
 ```
 
 ```
-$ wp theme list \--status=inactive \--fields=name,version \--path=/path/to/wordpress
+$ wp theme list --status=inactive --fields=name,version --path=/path/to/wordpress
 ```
 Verify no unused plugins or themes are present (one default/fallback theme is acceptable).
 
 **Remediation:**
 
-```
-$ wp plugin delete \<plugin-name\> \--path=/path/to/wordpress
+```bash
+$ wp plugin delete <plugin-name> --path=/path/to/wordpress
 ```
 
-```
-$ wp theme delete \<theme-name\> \--path=/path/to/wordpress
+```bash
+$ wp theme delete <theme-name> --path=/path/to/wordpress
 ```
 Retain only the active theme and one default WordPress theme as a fallback.
 
@@ -1468,7 +1450,7 @@ Retain only the active theme and one default WordPress theme as a fallback.
 
 This is a manual check. Review all installed plugins and themes:
 ```
-$ wp plugin list \--fields=name,status,version,update_available \--path=/path/to/wordpress
+$ wp plugin list --fields=name,status,version,update_available --path=/path/to/wordpress
 ```
 Verify each plugin is available in the WordPress.org repository or from a known commercial vendor.
 
@@ -1499,11 +1481,11 @@ Verify each plugin is available in the WordPress.org repository or from a known 
 **Audit:**
 
 ```
-$ wp plugin list \--fields=name,version,update_available \--path=/path/to/wordpress
+$ wp plugin list --fields=name,version,update_available --path=/path/to/wordpress
 ```
 
 ```
-$ wp theme list \--fields=name,version,update_available \--path=/path/to/wordpress
+$ wp theme list --fields=name,version,update_available --path=/path/to/wordpress
 ```
 Verify no security updates are pending.
 
