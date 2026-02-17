@@ -73,9 +73,9 @@ Each recommendation includes:
 
 ## 📒 Related Reading
 
-- [WordPress Security Architecture and Hardening Guide ](https://github.com/dknauss/wp-security-hardening-guide)— Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security.
+- [WordPress Security Architecture and Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide): Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security.
 
-- [WordPress Security Benchmark](https://github.com/dknauss/wp-security-hardening-guide) — Prescriptive, auditable hardening controls for the full WordPress stack. Use for compliance verification and configuration audits.
+- [WordPress Security Style Guide](https://github.com/dknauss/wp-security-style-guide): Principles and terminology for writing about WordPress security effectively.
 
 ## 🤝 Contributing
 
