@@ -1,4 +1,4 @@
-# WordPress Benchmark — DRAFT
+# WordPress Security Benchmark — DRAFT
 
 **Full Stack Hardening Guide**
 
@@ -549,7 +549,7 @@ Restart MySQL.
 
 **Audit:**
 
-Inspect wp-config.php:
+Inspect `wp-config.php`:
 ```
 $ grep 'table_prefix' /path/to/wp-config.php
 ```
@@ -557,7 +557,7 @@ Verify the value is not 'wp_'.
 
 **Remediation:**
 
-In wp-config.php, set during installation:
+In `wp-config.php`, set during installation:
 ```
 $table_prefix = 'wxyz_';
 ```
@@ -1235,15 +1235,15 @@ sudo find /path/to/wordpress/wp-content/uploads -type f -exec chmod 664 {} \;
 —
 
 
-#### 6.2 Ensure wp-config.php has restrictive permissions
+#### 6.2 Ensure `wp-config.php` has restrictive permissions
 
 **Profile Applicability:** **Level 1**
 
 **Assessment Status:** Automated
 
-**Description:** wp-config.php must have file permissions of 600 (owner read/write only) or 640 (owner read/write, group read). It should not be readable by the web server user directly; access should be through the PHP-FPM pool running as the site user.
+**Description:** `wp-config.php` must have file permissions of 600 (owner read/write only) or 640 (owner read/write, group read). It should not be readable by the web server user directly; access should be through the PHP-FPM pool running as the site user.
 
-**Rationale:** wp-config.php contains database credentials, authentication keys, and security-sensitive configuration. Broad read permissions could expose these to other users on a shared server or to a compromised web server process.
+**Rationale:** `wp-config.php` contains database credentials, authentication keys, and security-sensitive configuration. Broad read permissions could expose these to other users on a shared server or to a compromised web server process.
 
 **Audit:**
 
@@ -1380,6 +1380,39 @@ Verify both commands report no modifications.
 —
 
 
+#### 7.3 Ensure server-level malware detection is configured
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** A server-level malware detection solution should be deployed to scan the WordPress file system for known malicious patterns, web shells, backdoors, and unauthorized modifications beyond what WordPress-level integrity checks can detect.
+
+**Rationale:** WordPress-level file integrity checks (7.2) compare files against known-good checksums but cannot detect malware injected into non-core files, uploaded web shells, or obfuscated payloads in legitimate-looking files. Server-level scanning tools use signature databases and heuristic analysis that cover a broader threat surface.
+
+**Impact:** Scanning may consume server resources. Schedule intensive scans during low-traffic periods. Real-time monitoring (where available) adds minimal overhead.
+
+**Audit:**
+
+This is a manual check. Verify that:
+1. A server-level malware scanning tool is installed and active (e.g., Imunify360, Linux Malware Detect, ClamAV).
+2. Regular scans are scheduled (daily recommended).
+3. Scan results are reviewed and alerts are configured for detections.
+
+**Remediation:**
+
+1. Install a server-level malware detection tool appropriate to the environment:
+   - **Managed hosting:** Verify the hosting provider includes malware scanning (most enterprise WordPress hosts include Imunify360 or equivalent).
+   - **Self-managed:** Install Linux Malware Detect (LMD) with ClamAV as a scanning engine.
+2. Configure daily scheduled scans of the WordPress installation directory.
+3. Enable real-time monitoring of the `wp-content/` directory if supported.
+4. Configure email or SIEM alerts for malware detections.
+
+**Default Value:** No malware detection is configured by default on most server environments.
+
+—
+
+
 ## 8 Supply Chain and Extension Management
 
 This section addresses the security of WordPress plugins, themes, and their update processes.
@@ -1477,13 +1510,60 @@ Verify no security updates are pending.
 **Remediation:**
 
 1\. Enable auto-updates for plugins and themes where supported.
-2\. Subscribe to vulnerability notification services (Patchstack, WPScan, Wordfence).
+2\. Subscribe to vulnerability notification services (Patchstack, WPScan, Wordfence). Use the Exploit Prediction Scoring System (EPSS) alongside CVSS to prioritize remediation by real-world exploitability.
 3\. Establish a maintenance schedule for manual update review (weekly minimum).
 4\. Deploy virtual patching for critical vulnerabilities that cannot be patched immediately.
 
 **Default Value:** Plugin and theme auto-updates are disabled by default (can be enabled per-plugin).
 
 **References:** https://patchstack.com/database/
+
+—
+
+
+#### 8.4 Ensure a Software Bill of Materials (SBOM) is maintained
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** A machine-readable Software Bill of Materials (SBOM) should be maintained for each WordPress deployment, documenting all components including WordPress core version, all active and inactive plugins and themes, third-party libraries bundled within plugins or themes, PHP version and extensions, and web server and database versions.
+
+**Rationale:** Supply chain compromise accounted for 15% of breaches in IBM's Cost of a Data Breach Report (2025) with an average cost of $4.91 million, and third-party involvement doubled to 30% per the Verizon DBIR (2025). An SBOM enables rapid identification of affected components when a vulnerability is disclosed in any dependency, reducing the time to assess exposure and apply patches.
+
+**Impact:** Requires tooling and process to generate and maintain the SBOM. Can be automated through `wp-cli` scripts and CI/CD pipeline integration.
+
+**Audit:**
+
+This is a manual check. Verify that:
+1. An SBOM document or automated generation process exists for the WordPress deployment.
+2. The SBOM is updated when plugins, themes, or core are added, updated, or removed.
+3. The SBOM is stored in a location accessible to the security team.
+
+**Remediation:**
+
+1. Generate an SBOM using `wp-cli` and system commands:
+```bash
+# Core version
+wp core version --path=/path/to/wordpress
+
+# All plugins with versions
+wp plugin list --fields=name,version,status --path=/path/to/wordpress --format=json
+
+# All themes with versions
+wp theme list --fields=name,version,status --path=/path/to/wordpress --format=json
+
+# PHP version and extensions
+php -v && php -m
+
+# Web server and database versions
+nginx -v 2>&1 || apache2 -v 2>&1
+mysql --version
+```
+2. Integrate SBOM generation into deployment pipelines.
+3. Cross-reference the SBOM against vulnerability databases (Patchstack, WPScan) on a regular schedule.
+
+**Default Value:** No SBOM is maintained by default.
 
 —
 
@@ -1525,7 +1605,7 @@ For Cloud WAF:
 
 **Default Value:** No WAF is configured by default.
 
-**Note:** While this benchmark classifies WAF as Level 2, enterprise WordPress deployments should treat WAF as a baseline requirement. See the companion WordPress Security White Paper for extended enterprise guidance.
+**Note:** While this benchmark classifies WAF as Level 2, enterprise WordPress deployments should treat WAF as a baseline requirement. See the companion [WordPress Security Architecture and Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide) for extended enterprise guidance.
 
 **References:** https://coreruleset.org/
 https://github.com/coreruleset/wordpress-rule-exclusions-plugin
@@ -1572,7 +1652,7 @@ This is a manual check. Verify that:
 
 —
 
-### 11. AI and Generative AI Security
+## 11 AI and Generative AI Security
 
 AI tools are increasingly integrated into WordPress workflows for content generation, chatbots, code assistance, and site management. IBM's Cost of a Data Breach Report (2025) found that 13% of organizations experienced a breach involving an AI model or application, and 97% of those breaches involved systems lacking proper access controls. This section provides controls for securing AI integrations in WordPress environments.
 
@@ -1638,7 +1718,7 @@ Review custom AI integration code for direct output of AI-generated content with
 
 **Description:** Organizations must maintain and enforce a policy governing the use of AI tools by WordPress team members and integrated into WordPress sites. The policy must address approved tools, data classification for AI inputs, authentication requirements, and disclosure of AI-generated content.
 
-**Rationale:** Shadow AI — the unsanctioned use of AI tools by employees — is a measurable risk. IBM's Cost of a Data Breach Report (2025) found that 20% of breached organizations experienced a shadow AI incident, adding $200,000 to average breach costs, and that 63% of organizations lack AI governance policies. The Verizon DBIR (2025) found that 15% of employees routinely access GenAI systems on corporate devices, with 72% using non-corporate email accounts.
+**Rationale:** Shadow AI — the unsanctioned use of AI tools by employees — is a measurable risk. IBM's Cost of a Data Breach Report (2025) found that 20% of breached organizations experienced a shadow AI incident, adding $200,000 to average breach costs ($670,000 for organizations with high shadow AI prevalence), and that 63% of organizations lack AI governance policies. The Verizon DBIR (2025) found that 15% of employees routinely access GenAI systems on corporate devices, with 72% using non-corporate email accounts.
 
 **Impact:** Requires organizational policy development and enforcement. May restrict which AI plugins can be installed on WordPress sites.
 
@@ -1656,6 +1736,246 @@ Review custom AI integration code for direct output of AI-generated content with
 4. Include AI governance in security awareness training.
 
 **Default Value:** No AI governance policy exists by default.
+
+—
+
+
+## 12 Server Access and Network
+
+This section addresses secure remote access to the server hosting WordPress and host-level network controls.
+
+#### 12.1 Ensure SSH key-based authentication is enforced
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Automated
+
+**Description:** SSH access to the server must use key-based authentication only. Password-based SSH authentication must be disabled.
+
+**Rationale:** Password-based SSH authentication is vulnerable to brute-force and credential stuffing attacks. Key-based authentication is significantly more resistant to these attacks and is the standard for secure server access.
+
+**Impact:** All administrators must generate and deploy SSH key pairs before password authentication is disabled. Emergency access procedures should be documented.
+
+**Audit:**
+
+```
+$ grep -E 'PasswordAuthentication|PubkeyAuthentication' /etc/ssh/sshd_config
+```
+Verify: `PasswordAuthentication no` and `PubkeyAuthentication yes`.
+
+**Remediation:**
+
+In `/etc/ssh/sshd_config`:
+```
+PasswordAuthentication no
+PubkeyAuthentication yes
+PermitRootLogin no
+```
+Restart the SSH service:
+```
+$ sudo systemctl restart sshd
+```
+
+**Default Value:** Password authentication is enabled by default on most Linux distributions.
+
+—
+
+
+#### 12.2 Ensure SFTP is used and FTP is disabled
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Automated
+
+**Description:** File transfers to and from the server must use SFTP (SSH File Transfer Protocol) or SCP. Plain FTP and FTPS must be disabled. No FTP server software should be installed.
+
+**Rationale:** FTP transmits credentials and data in cleartext, making it trivial to intercept on a network. Even FTPS (FTP over TLS) has known weaknesses in channel binding. SFTP operates over the encrypted SSH channel and requires no additional server software.
+
+**Impact:** Users and deployment tools relying on FTP must be migrated to SFTP. Most modern FTP clients support SFTP natively.
+
+**Audit:**
+
+```
+$ ss -tlnp | grep -E ':21\b'
+```
+Verify no service is listening on port 21.
+```
+$ dpkg -l | grep -iE 'vsftpd|proftpd|pure-ftpd'
+```
+Verify no FTP server packages are installed.
+
+**Remediation:**
+
+1. Remove any installed FTP server software:
+```
+$ sudo apt purge vsftpd proftpd-basic pure-ftpd 2>/dev/null
+```
+2. Verify SFTP is available through the SSH server (enabled by default in OpenSSH):
+```
+$ grep 'Subsystem.*sftp' /etc/ssh/sshd_config
+```
+3. Configure deployment pipelines and team workflows to use SFTP or SCP exclusively.
+
+**Default Value:** FTP is not installed by default on most modern Linux distributions, but may be present in legacy environments.
+
+—
+
+
+#### 12.3 Ensure a host-based firewall is configured
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Automated
+
+**Description:** A host-based firewall (e.g., UFW on Ubuntu/Debian, firewalld on RHEL/CentOS) must be enabled and configured to restrict inbound traffic to only required ports: HTTP (80), HTTPS (443), and SSH on a non-standard port.
+
+**Rationale:** A host-based firewall provides a final layer of network defense, blocking unauthorized access to services running on the server even if upstream network controls fail. Restricting SSH to a non-standard port reduces automated scanning noise.
+
+**Impact:** Moving SSH to a non-standard port requires updating all SSH client configurations and deployment scripts. Misconfigured rules may lock out administrators.
+
+**Audit:**
+
+For UFW:
+```
+$ sudo ufw status verbose
+```
+Verify the firewall is active and only the required ports are open.
+
+**Remediation:**
+
+For UFW on Ubuntu/Debian:
+```bash
+# Enable UFW
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Allow required ports
+sudo ufw allow 443/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow <custom-ssh-port>/tcp
+
+# Enable the firewall
+sudo ufw enable
+```
+
+**Default Value:** UFW is installed but inactive on Ubuntu. No firewall is configured by default on most distributions.
+
+**References:** https://help.ubuntu.com/community/UFW
+
+—
+
+
+#### 12.4 Ensure per-site process isolation is configured
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** Each WordPress site on the server should run under a dedicated system user account with its own PHP-FPM pool. Sites must not share the same PHP process user.
+
+**Rationale:** Process isolation limits the blast radius of a compromise. If one site is breached, the attacker cannot read files, access databases, or modify code belonging to other sites on the same server. This is especially critical in multi-tenant hosting environments.
+
+**Impact:** Requires per-site PHP-FPM pool configuration and dedicated system user accounts. Increases server resource usage proportionally to the number of sites.
+
+**Audit:**
+
+```
+$ ps aux | grep php-fpm | grep -v grep
+```
+Verify each site's PHP-FPM pool runs as a different system user.
+```
+$ grep -r '^user' /etc/php/*/fpm/pool.d/
+```
+Verify each pool configuration specifies a unique user.
+
+**Remediation:**
+
+1. Create a dedicated system user for each site:
+```
+$ sudo useradd -r -s /usr/sbin/nologin site1_user
+```
+2. Configure a dedicated PHP-FPM pool for each site in `/etc/php/8.3/fpm/pool.d/site1.conf`:
+```ini
+[site1]
+user = site1_user
+group = site1_user
+listen = /run/php/php8.3-fpm-site1.sock
+listen.owner = www-data
+listen.group = www-data
+```
+3. Set file ownership accordingly and restart PHP-FPM.
+
+**Default Value:** A single `www-data` pool serves all sites by default.
+
+—
+
+
+## 13 Multisite Security
+
+This section addresses security considerations specific to WordPress Multisite installations.
+
+#### 13.1 Ensure Super Admin accounts are minimized and audited
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Manual
+
+**Description:** In a WordPress Multisite network, the number of Super Admin accounts must be limited to the absolute minimum required. Super Admin grants unrestricted access across all sites in the network, including the ability to install plugins and themes network-wide, create and delete sites, and manage all users across all sites.
+
+**Rationale:** Compromising any single Super Admin account grants an attacker full control over every site in the Multisite network. Unlike single-site Administrator accounts, Super Admin access cannot be scoped or restricted — it is all-or-nothing across the entire network.
+
+**Impact:** Operations that require Super Admin access must be performed by a small, audited group. Day-to-day site administration should use per-site Administrator roles.
+
+**Audit:**
+
+```
+$ wp super-admin list --path=/path/to/wordpress
+```
+Review the list. Verify that each Super Admin account is actively needed and assigned to a specific individual.
+
+**Remediation:**
+
+1. Audit existing Super Admin accounts.
+2. Remove Super Admin privileges from accounts that don't require network-level access:
+```
+$ wp super-admin remove <username> --path=/path/to/wordpress
+```
+3. Assign per-site Administrator roles for day-to-day operations.
+4. Review Super Admin accounts quarterly.
+
+**Default Value:** One Super Admin account is created during Multisite installation.
+
+—
+
+
+#### 13.2 Ensure network-activated plugins are reviewed for cross-site impact
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** Plugins activated at the network level in a WordPress Multisite installation run on all sites in the network. Each network-activated plugin should be reviewed for its security impact across all sites, and network activation should be reserved for plugins that genuinely require network-wide operation.
+
+**Rationale:** A vulnerability in a network-activated plugin affects every site in the Multisite network simultaneously. Shared database tables and a common file system mean that a single exploit can traverse all sites. Limiting network activation reduces the shared attack surface.
+
+**Impact:** Plugins that are only needed on specific sites must be activated per-site rather than network-wide. This may require changes to existing deployment workflows.
+
+**Audit:**
+
+This is a manual check. Review the list of network-activated plugins:
+```
+$ wp plugin list --status=active-network --fields=name,version --path=/path/to/wordpress
+```
+For each network-activated plugin, verify that network-wide activation is necessary rather than per-site activation.
+
+**Remediation:**
+
+1. Review all network-activated plugins.
+2. Deactivate plugins at the network level that don't require network-wide operation.
+3. Activate them per-site only where needed.
+4. Ensure domain mapping (if used) enforces TLS across all mapped domains.
+
+**Default Value:** No plugins are network-activated by default.
 
 —
 
@@ -1696,24 +2016,31 @@ The following table summarizes all recommendations in this benchmark.
 | 5.7  | Ensure strong password policy is enforced          | L1        | Manual         |
 | 5.8  | Ensure roles and capabilities are defined in code   | L2        | Manual         |
 | 6.1  | Ensure files are owned by non-web-server user       | L1        | Automated      |
-| 6.2  | Ensure wp-config.php has restrictive permissions    | L1        | Automated      |
-| 6.3  | Ensure wp-config.php is above document root         | L2        | Manual         |
+| 6.2  | Ensure `wp-config.php` has restrictive permissions    | L1        | Automated      |
+| 6.3  | Ensure `wp-config.php` is above document root         | L2        | Manual         |
 | 7.1  | Ensure user activity logging is enabled             | L1        | Manual         |
 | 7.2  | Ensure file integrity monitoring is configured      | L2        | Automated      |
+| 7.3  | Ensure server-level malware detection is configured | L2        | Manual         |
 | 8.1  | Ensure unused plugins and themes are removed        | L1        | Automated      |
 | 8.2  | Ensure extensions are from trusted sources          | L1        | Manual         |
 | 8.3  | Ensure plugin/theme updates are applied promptly    | L1        | Manual         |
-| 9.1  | Ensure Web Application Firewall is Configured        | L2        | Manual         |
-| 10.1 | Ensure backup and recovery procedures are implemented | L1        | Manual         |
+| 8.4  | Ensure a Software Bill of Materials is maintained   | L2        | Manual         |
+| 9.1  | Ensure Web Application Firewall is configured       | L2        | Manual         |
+| 10.1 | Ensure backup and recovery procedures are implemented | L1      | Manual         |
 | 11.1 | Ensure AI API keys are securely stored               | L1        | Automated      |
 | 11.2 | Ensure AI-generated content is sanitized             | L1        | Manual         |
 | 11.3 | Ensure AI tool usage is governed by policy           | L2        | Manual         |
-| 10.1 | Ensure backup and recovery procedures are implemented | L1       | Manual         |
+| 12.1 | Ensure SSH key-based authentication is enforced     | L1        | Automated      |
+| 12.2 | Ensure SFTP is used and FTP is disabled             | L1        | Automated      |
+| 12.3 | Ensure a host-based firewall is configured          | L1        | Automated      |
+| 12.4 | Ensure per-site process isolation is configured     | L2        | Manual         |
+| 13.1 | Ensure Multisite Super Admin accounts are minimized | L1        | Manual         |
+| 13.2 | Ensure network-activated plugins are reviewed       | L2        | Manual         |
 
 ## Related Documents
 
--   **WordPress Security Architecture and Hardening Guide** — Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security. This benchmark's technical controls complement the white paper's broader strategic guidance.
--   **WP Security Style Guide** — Principles, terminology, and formatting conventions for writing about WordPress security.
+-   **[WordPress Security Architecture and Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide)** — Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security. This benchmark's technical controls complement the Hardening Guide's broader strategic guidance.
+-   **[WordPress Security Style Guide](https://github.com/dknauss/wp-security-style-guide)** — Principles, terminology, and formatting conventions for writing about WordPress security.
 -   **WordPress Security White Paper (WordPress.org, September 2025)** — The official upstream document describing WordPress core security architecture, maintained at [developer.wordpress.org](https://developer.wordpress.org/apis/security/).
 
 ## License and Attribution

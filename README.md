@@ -2,7 +2,7 @@
 
 **A Comprehensive Full-Stack Hardening Guide for Enterprise WordPress Environments.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
 [![WordPress Version](https://img.shields.io/badge/WordPress-6.x-blue.svg)](https://wordpress.org)
 [![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777bb4.svg)](https://www.php.net/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20(Ubuntu/Debian)-lightgrey.svg)](https://ubuntu.com/)
@@ -17,8 +17,15 @@ The **WordPress Security Benchmark** provides prescriptive, actionable guidance 
 - 🛡️ **Web Server Hardening** (Nginx & Apache)
 - ⚙️ **PHP Runtime Security**
 - 🗄️ **Database Isolation & Least Privilege** (MySQL & MariaDB)
-- 🍎 **WordPress Core Configuration** 
-- 🥅 **Network & Firewall Policy**
+- 🔑 **WordPress Core Configuration**
+- 🔒 **Authentication & Access Control** (2FA, session management, least privilege)
+- 📁 **File System Permissions**
+- 📊 **Logging, Monitoring & Malware Detection**
+- 📦 **Supply Chain & Extension Management** (SBOM, plugin vetting)
+- 🌐 **WAF, Backup & Recovery**
+- 🤖 **AI & Generative AI Security**
+- 🖧 **Server Access & Network** (SSH, SFTP, firewall, process isolation)
+- 🏗️ **Multisite Security**
 
 ---
 
@@ -85,7 +92,7 @@ Contributions are welcome! If you find an error or have an improvement for the b
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details (if applicable).
+This project is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/).
 
 ---
 
