@@ -37,7 +37,7 @@ The guidance draws on many WordPress security resources and standards, such as t
 This benchmark defines two configuration profiles:
 
 | Level       | Description |
-| ———-- | — |
+| :---------- | :---------- |
 | **Level 1** | Essential security settings that can be implemented on any WordPress deployment with minimal impact on functionality or performance. These form a baseline security posture that every site should meet. Implementing Level 1 items should not significantly inhibit the usability of the technology. |
 | **Level 2** | Defense-in-depth settings intended for high-security environments. These recommendations may restrict functionality, require additional tooling, or involve operational overhead. They are appropriate for sites handling sensitive data, regulated industries, or high-value targets. |
 
