@@ -111,7 +111,7 @@ Restart the web server after changes.
 
 For Nginx, inspect the response headers:
 ```
-$ curl -sI https://example.com \| grep -iE '(content-security\|x-content-type\|x-frame\|strict-transport\|referrer-policy\|permissions-policy)'
+$ curl -sI https://example.com | grep -iE '(content-security\|x-content-type\|x-frame\|strict-transport\|referrer-policy\|permissions-policy)'
 ```
 Verify all six headers are present.
 
@@ -167,7 +167,7 @@ OWASP Secure Headers Project
 **Audit:**
 
 ```
-$ curl -sI https://example.com \| grep -i 'server'
+$ curl -sI https://example.com | grep -i 'server'
 ```
 Verify the Server header does not contain version numbers.
 
@@ -302,9 +302,9 @@ This section provides recommendations for securing the PHP runtime environment.
 **Audit:**
 
 ```
-$ php -i \| grep expose_php
+$ php -i | grep expose_php
 ```
-Verify the output shows 'expose_php =\> Off =\> Off'.
+Verify the output shows 'expose_php => Off => Off'.
 
 **Remediation:**
 
@@ -332,9 +332,9 @@ Restart PHP-FPM or the web server.
 **Audit:**
 
 ```
-$ php -i \| grep display_errors
+$ php -i | grep display_errors
 ```
-Verify: 'display_errors =\> Off =\> Off'.
+Verify: 'display_errors => Off => Off'.
 
 **Remediation:**
 
@@ -373,7 +373,7 @@ error_log = /var/log/php/error.log
 **Audit:**
 
 ```
-$ php -i \| grep disable_functions
+$ php -i | grep disable_functions
 ```
 Verify the output includes dangerous functions.
 
@@ -404,7 +404,7 @@ disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_e
 **Audit:**
 
 ```
-$ php -i \| grep open_basedir
+$ php -i | grep open_basedir
 ```
 Verify a restricted path is configured.
 
@@ -433,7 +433,7 @@ open_basedir = /var/www/example.com:/tmp:/usr/share/php
 **Audit:**
 
 ```
-$ php -i \| grep -E 'session\.(cookie_secure\|cookie_httponly\|cookie_samesite\|use_strict_mode)'
+$ php -i | grep -E 'session\.(cookie_secure\|cookie_httponly\|cookie_samesite\|use_strict_mode)'
 ```
 Verify all are set to appropriate secure values.
 
@@ -521,7 +521,7 @@ $ grep -E 'bind-address\|skip-networking' /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 Verify bind-address is 127.0.0.1 or ::1.
 ```
-$ ss -tlnp \| grep 3306
+$ ss -tlnp | grep 3306
 ```
 Verify MySQL is listening only on 127.0.0.1:3306.
 
@@ -777,7 +777,7 @@ Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by
 **Audit:**
 
 ```
-$ wp config get WP_AUTO_UPDATE_CORE \--path=/path/to/wordpress 2\>/dev/null
+$ wp config get WP_AUTO_UPDATE_CORE --path=/path/to/wordpress 2>/dev/null
 ```
 
 ```
@@ -926,7 +926,7 @@ https://developer.wordpress.org/advanced-administration/security/hardening/
 **Audit:**
 
 ```
-$ wp user list \--role=administrator \--fields=ID,user_login,user_email \--path=/path/to/wordpress
+$ wp user list --role=administrator --fields=ID,user_login,user_email --path=/path/to/wordpress
 ```
 Review the list. Verify that each admin account is actively needed and assigned to a specific individual.
 
@@ -972,7 +972,7 @@ $user = get_userdata( $user_id );
 ```
 
 ```
-if ( in_array( 'administrator', $user-\>roles ) ) {
+if ( in_array( 'administrator', $user->roles ) ) {
 ```
 
 ```
@@ -1007,7 +1007,7 @@ return 24 \* HOUR_IN_SECONDS; // 24 hours for others
 **Audit:**
 
 ```
-$ curl -s https://example.com/wp-json/wp/v2/users \| python3 -m json.tool
+$ curl -s https://example.com/wp-json/wp/v2/users | python3 -m json.tool
 ```
 If the response returns user data, enumeration is possible.
 ```
@@ -1362,11 +1362,11 @@ Export logs to a centralized SIEM for correlation (Level 2).
 
 For WordPress core integrity:
 ```
-$ wp core verify-checksums \--path=/path/to/wordpress
+$ wp core verify-checksums --path=/path/to/wordpress
 ```
 For plugin integrity:
 ```
-$ wp plugin verify-checksums \--all \--path=/path/to/wordpress
+$ wp plugin verify-checksums --all --path=/path/to/wordpress
 ```
 Verify both commands report no modifications.
 
@@ -1433,22 +1433,22 @@ This section addresses the security of WordPress plugins, themes, and their upda
 **Audit:**
 
 ```
-$ wp plugin list \--status=inactive \--fields=name,version \--path=/path/to/wordpress
+$ wp plugin list --status=inactive --fields=name,version --path=/path/to/wordpress
 ```
 
 ```
-$ wp theme list \--status=inactive \--fields=name,version \--path=/path/to/wordpress
+$ wp theme list --status=inactive --fields=name,version --path=/path/to/wordpress
 ```
 Verify no unused plugins or themes are present (one default/fallback theme is acceptable).
 
 **Remediation:**
 
-```
-$ wp plugin delete \<plugin-name\> \--path=/path/to/wordpress
+```bash
+$ wp plugin delete <plugin-name> --path=/path/to/wordpress
 ```
 
-```
-$ wp theme delete \<theme-name\> \--path=/path/to/wordpress
+```bash
+$ wp theme delete <theme-name> --path=/path/to/wordpress
 ```
 Retain only the active theme and one default WordPress theme as a fallback.
 
@@ -1471,7 +1471,7 @@ Retain only the active theme and one default WordPress theme as a fallback.
 
 This is a manual check. Review all installed plugins and themes:
 ```
-$ wp plugin list \--fields=name,status,version,update_available \--path=/path/to/wordpress
+$ wp plugin list --fields=name,status,version,update_available --path=/path/to/wordpress
 ```
 Verify each plugin is available in the WordPress.org repository or from a known commercial vendor.
 
@@ -1502,11 +1502,11 @@ Verify each plugin is available in the WordPress.org repository or from a known 
 **Audit:**
 
 ```
-$ wp plugin list \--fields=name,version,update_available \--path=/path/to/wordpress
+$ wp plugin list --fields=name,version,update_available --path=/path/to/wordpress
 ```
 
 ```
-$ wp theme list \--fields=name,version,update_available \--path=/path/to/wordpress
+$ wp theme list --fields=name,version,update_available --path=/path/to/wordpress
 ```
 Verify no security updates are pending.
 
