@@ -248,7 +248,7 @@ Require all denied
 
 **Rationale:** WordPress authentication and API interfaces are primary targets for automated brute-force and resource exhaustion attacks. Comprehensive rate limiting across all entry points reduces the effectiveness of these attacks and protects server resources.
 
-**Impact:** Aggressive rate limiting may lock out legitimate users or break third-party integrations (e.g., decoupled front-ends) if not configured with appropriate burst allowances and whitelist exceptions.
+**Impact:** Aggressive rate limiting may lock out legitimate users or break third-party integrations (e.g., decoupled front-ends) if not configured with appropriate burst allowances and allowlist exceptions.
 
 **Audit:**
 
@@ -624,31 +624,31 @@ general_log_file = /var/log/mysql/mysql-general.log
 
 ## 4 WordPress Core Configuration
 
-This section covers security settings in wp-config.php and WordPress core behavior.
+This section covers security settings in `wp-config.php` and WordPress core behavior.
 
-#### 4.1 Ensure DISALLOW_FILE_MODS is set to true
+#### 4.1 Ensure `DISALLOW_FILE_MODS` is set to true
 
 **Profile Applicability:** **Level 1**
 
 **Assessment Status:** Automated
 
-**Description:** The DISALLOW_FILE_MODS constant should be defined as true in wp-config.php. This prevents all file modifications through the WordPress admin interface, including plugin and theme installation, updates, and code editing.
+**Description:** The `DISALLOW_FILE_MODS` constant should be defined as `true` in `wp-config.php`. This prevents all file modifications through the WordPress admin interface, including plugin and theme installation, updates, and code editing.
 
-**Rationale:** If an attacker gains admin access (e.g., through a compromised account), DISALLOW_FILE_MODS prevents them from installing malicious plugins, modifying theme files, or uploading web shells through the admin interface. Updates should be handled through deployment pipelines or server-side automation.
+**Rationale:** If an attacker gains admin access (e.g., through a compromised account), `DISALLOW_FILE_MODS` prevents them from installing malicious plugins, modifying theme files, or uploading web shells through the admin interface. Updates should be handled through deployment pipelines or server-side automation.
 
-**Impact:** Plugin and theme updates cannot be performed through the Dashboard. An alternative update mechanism (WP-CLI, CI/CD pipeline, or managed hosting) is required.
+**Impact:** Plugin and theme updates cannot be performed through the Dashboard. An alternative update mechanism (`wp-cli`, CI/CD pipeline, or managed hosting) is required.
 
 **Audit:**
 
 ```
 $ grep 'DISALLOW_FILE_MODS' /path/to/wp-config.php
 ```
-Verify: define( 'DISALLOW_FILE_MODS', true );
+Verify: `define( 'DISALLOW_FILE_MODS', true );`
 
 **Remediation:**
 
-Add to wp-config.php before 'That's all, stop editing!':
-define( 'DISALLOW_FILE_MODS', true );
+Add to `wp-config.php` before 'That's all, stop editing!':
+`define( 'DISALLOW_FILE_MODS', true );`
 
 **Default Value:** Not set (file modifications allowed).
 
@@ -657,13 +657,13 @@ define( 'DISALLOW_FILE_MODS', true );
 —
 
 
-#### 4.2 Ensure FORCE_SSL_ADMIN is set to true
+#### 4.2 Ensure `FORCE_SSL_ADMIN` is set to true
 
 **Profile Applicability:** **Level 1**
 
 **Assessment Status:** Automated
 
-**Description:** The FORCE_SSL_ADMIN constant forces all admin and login pages to be served over HTTPS.
+**Description:** The `FORCE_SSL_ADMIN` constant forces all admin and login pages to be served over HTTPS.
 
 **Rationale:** Without this setting, admin session cookies could be transmitted over unencrypted HTTP if a user accesses the admin via an HTTP URL, enabling session hijacking via network interception.
 
@@ -672,12 +672,12 @@ define( 'DISALLOW_FILE_MODS', true );
 ```
 $ grep 'FORCE_SSL_ADMIN' /path/to/wp-config.php
 ```
-Verify: define( 'FORCE_SSL_ADMIN', true );
+Verify: `define( 'FORCE_SSL_ADMIN', true );`
 
 **Remediation:**
 
-Add to wp-config.php:
-define( 'FORCE_SSL_ADMIN', true );
+Add to `wp-config.php`:
+`define( 'FORCE_SSL_ADMIN', true );`
 
 **Default Value:** Not set (HTTPS not enforced for admin).
 
@@ -690,29 +690,29 @@ define( 'FORCE_SSL_ADMIN', true );
 
 **Assessment Status:** Automated
 
-**Description:** WP_DEBUG must be set to false in production environments. WP_DEBUG_DISPLAY must also be false, and WP_DEBUG_LOG should write to a non-public location if enabled.
+**Description:** `WP_DEBUG` must be set to `false` in production environments. `WP_DEBUG_DISPLAY` must also be `false`, and `WP_DEBUG_LOG` should write to a non-public location if enabled.
 
-**Rationale:** Debug output can reveal file paths, database queries, and PHP errors to attackers. Debug log files in the default location (wp-content/debug.log) are publicly accessible unless explicitly blocked.
+**Rationale:** Debug output can reveal file paths, database queries, and PHP errors to attackers. Debug log files in the default location (`wp-content/debug.log`) are publicly accessible unless explicitly blocked.
 
 **Audit:**
 
 ```
 $ grep -E 'WP_DEBUG\|WP_DEBUG_DISPLAY\|WP_DEBUG_LOG' /path/to/wp-config.php
 ```
-Verify WP_DEBUG and WP_DEBUG_DISPLAY are false.
-If WP_DEBUG_LOG is enabled, verify the log path is outside the web root or blocked by the web server.
+Verify `WP_DEBUG` and `WP_DEBUG_DISPLAY` are `false`.
+If `WP_DEBUG_LOG` is enabled, verify the log path is outside the web root or blocked by the web server.
 
 **Remediation:**
 
-define( 'WP_DEBUG', false );
+`define( 'WP_DEBUG', false );`
 
-define( 'WP_DEBUG_DISPLAY', false );
+`define( 'WP_DEBUG_DISPLAY', false );`
 
-define( 'WP_DEBUG_LOG', false );
+`define( 'WP_DEBUG_LOG', false );`
 If logging is needed, direct to a non-public path:
-define( 'WP_DEBUG_LOG', '/var/log/wordpress/debug.log' );
+`define( 'WP_DEBUG_LOG', '/var/log/wordpress/debug.log' );`
 
-**Default Value:** WP_DEBUG = false (secure by default). However, many deployment guides enable debug mode.
+**Default Value:** `WP_DEBUG = false` (secure by default). However, many deployment guides enable debug mode.
 
 —
 
@@ -723,9 +723,9 @@ define( 'WP_DEBUG_LOG', '/var/log/wordpress/debug.log' );
 
 **Assessment Status:** Automated
 
-**Description:** The XML-RPC interface (xmlrpc.php) should be disabled unless specifically required by a remote publishing client or integration.
+**Description:** The XML-RPC interface (`xmlrpc.php`) should be disabled unless specifically required by a remote publishing client or integration.
 
-**Rationale:** XML-RPC is commonly exploited for brute-force amplification attacks (the system.multicall method allows hundreds of password attempts in a single HTTP request) and DDoS amplification via pingbacks.
+**Rationale:** XML-RPC is commonly exploited for brute-force amplification attacks (the `system.multicall` method allows hundreds of password attempts in a single HTTP request) and DDoS amplification via pingbacks.
 
 **Impact:** Disabling XML-RPC will break Jetpack (which requires it for WordPress.com communication), the WordPress mobile app (older versions), and any third-party tool that uses the XML-RPC API.
 
@@ -753,11 +753,13 @@ return 403;
 ```
 
 }
-Or disable via wp-config.php:
-add_filter( 'xmlrpc_enabled', '__return_false' );
-(Place in a must-use plugin, not wp-config.php directly.)
+Or disable via `wp-config.php`:
+`add_filter( 'xmlrpc_enabled', '__return_false' );`
+(Place in a must-use plugin, not `wp-config.php` directly.)
 
-**Default Value:** XML-RPC is enabled and accessible by default.
+Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by unchecking "Allow link notifications from other blogs (pingbacks and trackbacks) on new posts." Trackbacks operate independently of `xmlrpc.php` and should be disabled separately.
+
+**Default Value:** XML-RPC, trackbacks, and pingbacks are all enabled by default.
 
 **References:** https://developer.wordpress.org/advanced-administration/security/hardening/
 
@@ -785,14 +787,14 @@ $ wp config get WP_AUTO_UPDATE_CORE \--path=/path/to/wordpress 2\>/dev/null
 ```
 $ grep 'WP_AUTO_UPDATE_CORE\\|AUTOMATIC_UPDATER_DISABLED' /path/to/wp-config.php
 ```
-Verify WP_AUTO_UPDATE_CORE is not set to false and AUTOMATIC_UPDATER_DISABLED is not true.
+Verify `WP_AUTO_UPDATE_CORE` is not set to `false` and `AUTOMATIC_UPDATER_DISABLED` is not `true`.
 
 **Remediation:**
 
-Ensure wp-config.php does not contain:
-define( 'AUTOMATIC_UPDATER_DISABLED', true );
+Ensure `wp-config.php` does not contain:
+`define( 'AUTOMATIC_UPDATER_DISABLED', true );`
 Optionally, explicitly enable minor updates:
-define( 'WP_AUTO_UPDATE_CORE', 'minor' );
+`define( 'WP_AUTO_UPDATE_CORE', 'minor' );`
 
 **Default Value:** Minor auto-updates are enabled by default since WordPress 3.7.
 
@@ -805,7 +807,7 @@ define( 'WP_AUTO_UPDATE_CORE', 'minor' );
 
 **Assessment Status:** Automated
 
-**Description:** All eight authentication keys and salts in wp-config.php must be set to unique, random values. These are: AUTH_KEY, SECURE_AUTH_KEY, LOGGED_IN_KEY, NONCE_KEY, and their corresponding SALT counterparts.
+**Description:** All eight authentication keys and salts in `wp-config.php` must be set to unique, random values. These are: `AUTH_KEY`, `SECURE_AUTH_KEY`, `LOGGED_IN_KEY`, `NONCE_KEY`, and their corresponding `SALT` counterparts.
 
 **Rationale:** These keys are used to hash session tokens stored in cookies. Default, empty, or guessable values weaken cookie security, making session forgery and hijacking easier.
 
@@ -822,11 +824,59 @@ Generate new keys using the WordPress.org API:
 ```
 $ curl -s https://api.wordpress.org/secret-key/1.1/salt/
 ```
-Replace the key definitions in wp-config.php with the generated output.
+Replace the key definitions in `wp-config.php` with the generated output.
 
 **Default Value:** Placeholder values ('put your unique phrase here') in fresh installations.
 
 **References:** https://developer.wordpress.org/advanced-administration/security/hardening/
+
+—
+
+
+#### 4.7 Ensure `wp-cron.php` is replaced with a system cron job
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Automated
+
+**Description:** WordPress's built-in pseudo-cron (`wp-cron.php`) should be disabled and replaced with a real system-level cron job. `wp-cron.php` is triggered on every page load, making execution timing unpredictable and exposing an additional PHP endpoint to the network.
+
+**Rationale:** `wp-cron.php` can be abused for resource exhaustion by sending rapid requests to the endpoint. It is also unreliable on low-traffic sites where scheduled tasks may not fire at all. A system cron job executes on a predictable schedule regardless of traffic and eliminates an unnecessary public PHP endpoint.
+
+**Impact:** Disabling `wp-cron.php` without configuring a system cron replacement will prevent scheduled tasks (e.g., publishing scheduled posts, checking for updates, sending email digests) from running.
+
+**Audit:**
+
+```
+$ grep 'DISABLE_WP_CRON' /path/to/wp-config.php
+```
+Verify: `define( 'DISABLE_WP_CRON', true );`
+
+Verify a system cron job is configured:
+```
+$ crontab -l | grep wp-cron
+```
+
+**Remediation:**
+
+1. Add to `wp-config.php`:
+`define( 'DISABLE_WP_CRON', true );`
+
+2. Add a system cron job (runs every 5 minutes) using `wp-cli`:
+```
+*/5 * * * * cd /path/to/wordpress && wp cron event run --due-now > /dev/null 2>&1
+```
+
+3. Block direct external access to `wp-cron.php` at the web server level (Nginx):
+```nginx
+location = /wp-cron.php {
+    deny all;
+    return 403;
+}
+```
+This is safe because `wp-cli` executes PHP directly and does not use HTTP.
+
+**Default Value:** `wp-cron.php` is enabled and triggered on every page load by default.
 
 —
 
@@ -902,9 +952,9 @@ Review the list. Verify that each admin account is actively needed and assigned 
 
 **Assessment Status:** Automated
 
-**Description:** WordPress session cookies should have a maximum lifetime enforced, regardless of user activity. Privileged accounts (Administrators, Editors) should have shorter session limits (8--24 hours).
+**Description:** WordPress session cookies should have a maximum lifetime enforced, regardless of user activity. Privileged accounts (Administrators, Editors) should have shorter session limits (8–24 hours). Additionally, idle sessions should be terminated after a defined period of inactivity, the "Remember Me" option should be disabled or minimized for administrator accounts, and all active sessions should be purged on role or permission changes.
 
-**Rationale:** Long-lived sessions increase the window of opportunity for session hijacking. If an auth cookie is stolen, a shorter lifetime limits how long the attacker can use it.
+**Rationale:** Long-lived sessions increase the window of opportunity for session hijacking. If an auth cookie is stolen, a shorter lifetime limits how long the attacker can use it. Idle session timeouts and scheduled session destruction provide additional layers of defense that reduce the exposure window even further.
 
 **Impact:** Users will need to re-authenticate more frequently. This can be mitigated with trusted device verification.
 
@@ -954,7 +1004,7 @@ return 24 \* HOUR_IN_SECONDS; // 24 hours for others
 
 **Description:** The REST API user endpoint and author archive URLs should be restricted to prevent unauthenticated enumeration of usernames.
 
-**Rationale:** Username enumeration provides attackers with valid login targets for brute-force and credential stuffing attacks. The default WordPress REST API exposes user slugs at /wp-json/wp/v2/users, and author archives expose usernames via /?author=N URLs.
+**Rationale:** Username enumeration provides attackers with valid login targets for brute-force and credential stuffing attacks. The default WordPress REST API exposes user slugs at `/wp-json/wp/v2/users`, and author archives expose usernames via `/?author=N` URLs.
 
 **Impact:** Blocking the REST API users endpoint may affect plugins that rely on it for public author data (e.g., some theme author bio features).
 
@@ -972,23 +1022,15 @@ If the response is a 301 redirect to an author archive, enumeration is possible.
 **Remediation:**
 
 Block the REST API users endpoint for unauthenticated requests via a must-use plugin:
+```php
 add_filter( 'rest_endpoints', function( $endpoints ) {
-
-```
-if ( ! is_user_logged_in() ) {
-```
-
-unset( $endpoints['/wp/v2/users'] );
-
-unset( $endpoints['/wp/v2/users/(?P\<id\>[\\d]+)'] );
-
-}
-
-```
-return $endpoints;
-```
-
+    if ( ! is_user_logged_in() ) {
+        unset( $endpoints['/wp/v2/users'] );
+        unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+    }
+    return $endpoints;
 });
+```
 Block author archive enumeration at the web server level or with a plugin.
 
 **Default Value:** User data is publicly accessible via the REST API and author archives.
@@ -1002,21 +1044,24 @@ Block author archive enumeration at the web server level or with a plugin.
 
 **Assessment Status:** Manual
 
-**Description:** WordPress should require reauthentication (sudo mode) before performing sensitive administrative actions such as changing user passwords, email addresses, roles, or installing plugins.
+**Description:** WordPress should require reauthentication (sudo mode) before performing sensitive administrative actions. An "action-gated" model should be adopted to challenge users for their password (and 2FA) when they attempt destructive or high-risk operations.
 
-**Rationale:** If a session is hijacked, reauthentication limits the damage the attacker can do with the stolen session by requiring the account password for critical actions.
+**Rationale:** If a session is hijacked, reauthentication limits the damage the attacker can do with the stolen session. Gating critical operations ensures that even with a stolen browser cookie, the attacker cannot perform permanent or high-impact changes without knowing the user's password.
 
-**Impact:** Requires a plugin or custom implementation. WordPress core does not natively enforce reauthentication for most admin actions.
+**Impact:** Requires a dedicated security solution (e.g., Fortress by Snicco). WordPress core does not natively enforce reauthentication for most admin actions.
 
 **Audit:**
 
-This is a manual check. Verify that:
-1\. A reauthentication mechanism is in place for sensitive admin actions.
-2\. Changing user email/password requires current password entry.
+This is a manual check. Verify that a reauthentication challenge is triggered for at least the following categories of actions:
+1. **Plugins & Themes:** Installation, deletion, and updates.
+2. **Users:** Creation, deletion, and role promotion (especially to Administrator).
+3. **Authentication:** Application password creation (to prevent persistent backdoors).
+4. **Configuration:** Edits to `wp-config.php` constants or critical site options.
+5. **Tools:** Data export (WXR) and WordPress core updates.
 
 **Remediation:**
 
-Implement via a security plugin that supports sudo/reauthentication mode (e.g., Fortress by Snicco), or add custom reauthentication checks to critical admin functions.
+Implement an action-gated reauthentication solution. Configure the "Action Registry" to gate all high-priority destructive operations. Ensure the solution supports both the Dashboard UI and relevant API surfaces (AJAX/REST).
 
 **Default Value:** WordPress requires password confirmation only for profile email/password changes.
 
@@ -1074,6 +1119,8 @@ add_filter( 'rest_authentication_errors', function( $result ) {
 
 **Impact:** Users may need to update existing weak passwords. Requires a plugin for advanced enforcement (e.g., Wordfence, iThemes Security, or Passthrough Authentication).
 
+**Note on Password Hashing:** As of WordPress 6.8, user passwords are hashed with bcrypt by default. Argon2id is supported on compatible PHP environments and provides stronger resistance to GPU-accelerated brute-force attacks. For high-security deployments, consider adopting Argon2id via a dedicated plugin or custom implementation.
+
 **Audit:**
 
 This is a manual check. Verify that:
@@ -1091,6 +1138,52 @@ This is a manual check. Verify that:
 **Default Value:** WordPress encourages strong passwords but does not strictly enforce a minimum length or check against breached lists by default.
 
 **References:** OWASP Authentication Cheat Sheet, NIST SP 800-63B
+
+—
+
+
+#### 5.8 Ensure user roles and capabilities are defined in code
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** User roles and custom capabilities should be defined in code (via a must-use plugin or `wp-config.php`) rather than relying solely on database-stored role definitions. This ensures role definitions are version-controlled, auditable, and resistant to tampering.
+
+**Rationale:** Role and capability definitions stored only in the database can be modified by an attacker who achieves SQL injection or gains admin access. Defining roles in code makes privilege escalation via database manipulation significantly harder and ensures role definitions can be reviewed in version control.
+
+**Impact:** Requires development effort to codify custom roles. Changes to roles must go through the deployment pipeline rather than the WordPress Dashboard.
+
+**Audit:**
+
+This is a manual check. Verify that:
+1. Custom roles are defined in a must-use plugin or `wp-config.php`-adjacent include file.
+2. Role definitions are stored in version control.
+3. Default role capabilities have been reviewed and unnecessary capabilities removed.
+
+**Remediation:**
+
+Create a must-use plugin (`wp-content/mu-plugins/custom-roles.php`) that registers custom roles and removes unnecessary default capabilities on every load:
+```php
+add_action( 'init', function() {
+    // Remove capabilities from default roles as needed
+    $editor = get_role( 'editor' );
+    if ( $editor ) {
+        $editor->remove_cap( 'unfiltered_html' );
+    }
+
+    // Register custom roles
+    if ( ! get_role( 'site_manager' ) ) {
+        add_role( 'site_manager', 'Site Manager', array(
+            'read'           => true,
+            'manage_options' => true,
+            // Add only the capabilities this role requires
+        ));
+    }
+});
+```
+
+**Default Value:** Roles are stored in the `wp_options` table and editable via plugins or direct database access.
 
 —
 
@@ -1181,6 +1274,47 @@ chown wp_user:wp_user /path/to/wordpress/wp-config.php
 —
 
 
+#### 6.3 Ensure `wp-config.php` is placed above the document root
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** Where server configuration allows, `wp-config.php` should be moved one directory above the web document root. WordPress automatically detects this placement and loads the file from the parent directory.
+
+**Rationale:** Placing `wp-config.php` above the document root prevents direct HTTP access to the file entirely, even if a web server misconfiguration exposes PHP source code. This provides defense-in-depth beyond file permissions alone.
+
+**Impact:** Some hosting environments (e.g., shared hosting with restricted directory structures, some containerized setups) may not support this configuration. Additionally, if the WordPress installation is in the web root itself (rather than a subdirectory), the parent directory must not be another site's web root.
+
+**Audit:**
+
+Verify `wp-config.php` is not inside the document root:
+```
+$ ls -la /var/www/example.com/wp-config.php
+```
+If the file exists in the document root, it should be moved. Verify WordPress functions correctly after the move:
+```
+$ curl -sI https://example.com/ | head -5
+```
+
+**Remediation:**
+
+Move `wp-config.php` one directory above the document root:
+```
+$ mv /var/www/example.com/wp-config.php /var/www/wp-config.php
+```
+WordPress will automatically detect and load `wp-config.php` from the parent directory. No additional configuration is needed.
+
+Verify the parent directory is not publicly accessible and has restrictive permissions:
+```
+$ chmod 750 /var/www/
+```
+
+**Default Value:** `wp-config.php` is placed in the WordPress installation root (typically the document root) by default.
+
+—
+
+
 ## 7 Logging and Monitoring
 
 This section addresses audit logging, activity monitoring, and intrusion detection for WordPress.
@@ -1242,9 +1376,9 @@ Verify both commands report no modifications.
 
 **Remediation:**
 
-1\. Run wp core verify-checksums and wp plugin verify-checksums on a scheduled basis (daily recommended).
+1\. Run `wp core verify-checksums` and `wp plugin verify-checksums` on a scheduled basis (daily recommended).
 2\. Install a file integrity monitoring plugin or configure server-level monitoring.
-3\. Alert on any unexpected file changes in wp-includes/, wp-admin/, and plugin directories.
+3\. Alert on any unexpected file changes in `wp-includes/`, `wp-admin/`, and plugin directories.
 
 **Default Value:** No integrity monitoring is configured by default.
 
@@ -1404,6 +1538,46 @@ https://github.com/coreruleset/wordpress-rule-exclusions-plugin
 —
 
 
+## 10 Backup and Recovery
+
+This section addresses backup strategy, offsite storage, and recovery procedures for WordPress deployments.
+
+#### 10.1 Ensure backup and recovery procedures are implemented
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Manual
+
+**Description:** Automated backups of the complete WordPress installation (files and database) must be performed regularly, stored offsite, encrypted, and tested for successful restoration on a recurring schedule.
+
+**Rationale:** In the event of a security breach, the most reliable recovery strategy is to identify the root cause, verify the integrity of backups, and rebuild the compromised system from a known-good state. Without tested backups, recovery from ransomware, data corruption, or a complete site compromise may be impossible.
+
+**Impact:** Backup processes consume storage and may briefly impact site performance during execution. Server-level backups are preferred over WordPress plugin-based backups for reliability and scope.
+
+**Audit:**
+
+This is a manual check. Verify that:
+1. Automated backups are running on a defined schedule (daily minimum for most sites).
+2. Backups include both the database and the full file system (WordPress core, `wp-content/`, and `wp-config.php`).
+3. Backups are stored offsite, in a location inaccessible from the production server.
+4. Backup data is encrypted both in transit and at rest.
+5. Backup restoration has been tested within the last quarter.
+6. Multiple backup generations are retained with sufficient history to recover from undetected compromises.
+
+**Remediation:**
+
+1. Configure server-level backups (not relying solely on WordPress plugins) with daily frequency at minimum.
+2. Store backups in an offsite location (e.g., a separate cloud storage account, S3 bucket, or remote server) that is not accessible from the production web server.
+3. Encrypt backup archives using AES-256 or equivalent.
+4. Test backup restoration quarterly by performing a full recovery to a staging environment.
+5. Retain at least 30 days of daily backups and 90 days of weekly backups, allowing recovery from compromises that may not be detected immediately.
+6. Document the recovery procedure and assign clear ownership and responsibilities.
+
+**Default Value:** No backups are configured by default. Backup responsibility depends on the hosting environment.
+
+—
+
+
 ## Appendix A: Recommendation Summary
 
 The following table summarizes all recommendations in this benchmark.
@@ -1430,6 +1604,7 @@ The following table summarizes all recommendations in this benchmark.
 | 4.4  | Ensure XML-RPC is disabled                          | L1        | Automated      |
 | 4.5  | Ensure automatic core updates are enabled           | L1        | Automated      |
 | 4.6  | Ensure unique auth keys and salts are configured    | L1        | Automated      |
+| 4.7  | Ensure wp-cron.php is replaced with system cron     | L1        | Automated      |
 | 5.1  | Ensure 2FA is required for administrators           | L1        | Manual         |
 | 5.2  | Ensure admin accounts are minimized                 | L1        | Manual         |
 | 5.3  | Ensure max session lifetime is enforced             | L2        | Automated      |
@@ -1437,14 +1612,17 @@ The following table summarizes all recommendations in this benchmark.
 | 5.5  | Ensure reauthentication for privileged actions      | L2        | Manual         |
 | 5.6  | Ensure unauthenticated REST API is restricted       | L2        | Automated      |
 | 5.7  | Ensure strong password policy is enforced          | L1        | Manual         |
+| 5.8  | Ensure roles and capabilities are defined in code   | L2        | Manual         |
 | 6.1  | Ensure files are owned by non-web-server user       | L1        | Automated      |
 | 6.2  | Ensure wp-config.php has restrictive permissions    | L1        | Automated      |
+| 6.3  | Ensure wp-config.php is above document root         | L2        | Manual         |
 | 7.1  | Ensure user activity logging is enabled             | L1        | Manual         |
 | 7.2  | Ensure file integrity monitoring is configured      | L2        | Automated      |
 | 8.1  | Ensure unused plugins and themes are removed        | L1        | Automated      |
 | 8.2  | Ensure extensions are from trusted sources          | L1        | Manual         |
 | 8.3  | Ensure plugin/theme updates are applied promptly    | L1        | Manual         |
 | 9.1  | Ensure Web Application Firewall is Configured        | L2        | Manual         |
+| 10.1 | Ensure backup and recovery procedures are implemented | L1       | Manual         |
 
 ## License
 
