@@ -474,11 +474,11 @@ This section covers MySQL/MariaDB configuration relevant to WordPress security.
 
 **Assessment Status:** Automated
 
-**Description:** The MySQL/MariaDB user account used by WordPress should have only the privileges required for normal operation: SELECT, INSERT, UPDATE, and DELETE on the WordPress database only. The CREATE, ALTER, INDEX, and DROP privileges are generally not needed for daily use and should be limited to improve security. 
+**Description:** The MySQL/MariaDB user account used by WordPress should have only the privileges required for normal operation: SELECT, INSERT, UPDATE, and DELETE on the WordPress database only. The CREATE, ALTER, INDEX, and DROP privileges are not needed for routine daily operations such as publishing posts, uploading media, or managing comments.
 
 **Rationale:** Granting excessive privileges (e.g., FILE, SUPER, GRANT) increases the impact of a SQL injection vulnerability. With minimal privileges, an attacker who achieves SQLi cannot read arbitrary files, modify grants, or perform administrative operations.
 
-**Impact:** Some plugins may require CREATE TEMPORARY TABLES or LOCK TABLES. Add only when verified necessary.
+**Impact:** Some plugins, themes, and major WordPress updates require CREATE, ALTER, INDEX, or DROP to modify the database schema. The WordPress project explicitly recommends retaining these privileges rather than permanently revoking them: removing them can cause failed updates and data loss. Grant SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, and DROP for normal deployments. Never grant FILE, SUPER, GRANT, or ALL PRIVILEGES.
 
 **Audit:**
 
@@ -636,6 +636,8 @@ This section covers security settings in `wp-config.php` and WordPress core beha
 **Assessment Status:** Automated
 
 **Description:** The `DISALLOW_FILE_MODS` constant should be defined as `true` in `wp-config.php`. This prevents all file modifications through the WordPress admin interface, including plugin and theme installation, updates, and code editing.
+
+**Note:** WordPress's official hardening documentation recommends `DISALLOW_FILE_EDIT`, which disables only the built-in file editor (equivalent to removing the `edit_themes`, `edit_plugins`, and `edit_files` capabilities). `DISALLOW_FILE_MODS` is a superset of that: it also prevents plugin and theme installation and updates through the Dashboard. This benchmark recommends `DISALLOW_FILE_MODS` for a more comprehensive lockdown. Sites that still require Dashboard-based plugin/theme updates but wish to block the file editor may use `DISALLOW_FILE_EDIT` instead.
 
 **Rationale:** If an attacker gains admin access (e.g., through a compromised account), `DISALLOW_FILE_MODS` prevents them from installing malicious plugins, modifying theme files, or uploading web shells through the admin interface. Updates should be handled through deployment pipelines or server-side automation.
 
@@ -919,9 +921,9 @@ https://developer.wordpress.org/advanced-administration/security/hardening/
 
 **Assessment Status:** Manual
 
-**Description:** The number of user accounts with the Administrator role should be limited to the minimum required. A primary administrator account should be reserved for emergency use only.
+**Description:** The number of user accounts with the Administrator role should be limited to the minimum required. A primary administrator account should be reserved for emergency use only. Administrator account usernames must not use easily guessed values such as `admin`, `administrator`, or `webmaster`, which are the first targets of automated brute-force attacks.
 
-**Rationale:** Each administrator account is a potential entry point. Compromising any single admin account grants full site control. Minimizing admin accounts reduces the attack surface.
+**Rationale:** Each administrator account is a potential entry point. Compromising any single admin account grants full site control. Minimizing admin accounts reduces the attack surface. Default or predictable usernames make brute-force and credential-stuffing attacks significantly easier.
 
 **Audit:**
 
@@ -933,9 +935,13 @@ Review the list. Verify that each admin account is actively needed and assigned 
 **Remediation:**
 
 1\. Audit existing administrator accounts.
-2\. Downgrade accounts that don't require full admin capabilities to Editor or a custom role.
-3\. Reserve one primary administrator account for break-glass emergencies.
-4\. Use custom roles with tailored capabilities for day-to-day operations.
+2\. Rename any account using a predictable username (e.g., `admin`) to a unique, non-guessable value:
+```
+$ wp user update <user-id> --user_login=<new-username> --path=/path/to/wordpress
+```
+3\. Downgrade accounts that don't require full admin capabilities to Editor or a custom role.
+4\. Reserve one primary administrator account for break-glass emergencies.
+5\. Use custom roles with tailored capabilities for day-to-day operations.
 
 **Default Value:** One administrator account is created during installation.
 
@@ -1186,6 +1192,8 @@ This section covers file ownership and permission settings for the WordPress ins
 
 **Description:** WordPress files should be owned by a system user account, not the web server process user (www-data, nginx, apache). The web server should have read access only, with write access limited to specific directories (uploads, cache).
 
+**Note:** WordPress's official documentation recommends 755 for directories and 644 for files as the standard baseline. This benchmark recommends the more restrictive 750/640 (removing world-read permissions) for production environments where no public processes outside the web server group require direct file system access. Either approach is acceptable; choose 755/644 if shared hosting or third-party tools require world-read, and 750/640 for tighter control.
+
 **Rationale:** If the web server process is compromised, file ownership by a separate user prevents the attacker from modifying WordPress core, plugin, or theme files.
 
 **Impact:** WordPress auto-updates and plugin installations via the Dashboard require write access to the file system. With DISALLOW_FILE_MODS enabled (see 4.1), this is not needed.
@@ -1216,7 +1224,8 @@ sudo find /path/to/wordpress/ -type f -exec chmod 640 {} \;
 ```
 
 ```
-sudo chmod 640 /path/to/wordpress/wp-config.php
+# Set wp-config.php to read-only (see 6.2 for details)
+sudo chmod 400 /path/to/wordpress/wp-config.php
 
 # Allow web server to write to uploads (if needed)
 sudo find /path/to/wordpress/wp-content/uploads -type d -exec chmod 775 {} \;
@@ -1234,21 +1243,25 @@ sudo find /path/to/wordpress/wp-content/uploads -type f -exec chmod 664 {} \;
 
 **Assessment Status:** Automated
 
-**Description:** `wp-config.php` must have file permissions of 600 (owner read/write only) or 640 (owner read/write, group read). It should not be readable by the web server user directly; access should be through the PHP-FPM pool running as the site user.
+**Description:** `wp-config.php` must have the most restrictive file permissions possible. WordPress's official hardening documentation recommends 400 (owner read-only) or 440 (owner and group read-only).
 
-**Rationale:** `wp-config.php` contains database credentials, authentication keys, and security-sensitive configuration. Broad read permissions could expose these to other users on a shared server or to a compromised web server process.
+- **400** is the preferred setting for production systems where `DISALLOW_FILE_MODS` is set and no deployment automation writes to the file.
+- **600** may be used temporarily when deployment scripts must write to the file; restore to 400 immediately after.
+- **440** is appropriate only when the PHP-FPM pool runs as a dedicated group and the owning group is that pool's group — never add the web server process user (www-data, nginx, apache) to the file's owning group in a shared-hosting context.
+
+**Rationale:** `wp-config.php` contains database credentials, authentication keys, and security-sensitive configuration. Broad read permissions could expose these to other users on a shared server or to a compromised web server process. Making the file read-only (400/440) ensures it cannot be modified by any process running as the site user, providing an additional layer of integrity protection.
 
 **Audit:**
 
 ```
 $ stat -c '%a %U:%G' /path/to/wordpress/wp-config.php
 ```
-Verify permissions are 600 or 640, and the owner is not the web server user.
+Verify permissions are 400 or 440 (600 or 640 are acceptable minimums where write access is required), and the owner is not the web server user.
 
 **Remediation:**
 
 ```
-chmod 600 /path/to/wordpress/wp-config.php
+chmod 400 /path/to/wordpress/wp-config.php
 ```
 
 ```
@@ -2034,7 +2047,8 @@ The following table summarizes all recommendations in this benchmark.
 
 -   **[WordPress Security Architecture and Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide)** — Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security. This benchmark's technical controls complement the Hardening Guide's broader strategic guidance.
 -   **[WordPress Security Style Guide](https://github.com/dknauss/wp-security-style-guide)** — Principles, terminology, and formatting conventions for writing about WordPress security.
--   **WordPress Security White Paper (WordPress.org, September 2025)** — The official upstream document describing WordPress core security architecture, maintained at [developer.wordpress.org](https://developer.wordpress.org/apis/security/).
+-   **[WordPress Advanced Administration: Security](https://developer.wordpress.org/advanced-administration/security/)** — The official WordPress documentation for WordPress security, covering hardening, brute-force protection, HTTPS, backups, monitoring, and multi-factor authentication.
+-   **[WordPress Security White Paper](https://wordpress.org/about/security/)** — The official upstream document describing WordPress core security architecture, maintained at WordPress.org.
 
 ## License and Attribution
 
