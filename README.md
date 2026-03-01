@@ -58,6 +58,8 @@ Strict security controls intended for high-risk environments handling sensitive 
 ## 📂 Project Structure
 
 - **[WordPress-Security-Benchmark.md](WordPress-Security-Benchmark.md)**: The full technical guide containing detailed audits and remediation steps.
+- **[WordPress-Security-Benchmark.docx](WordPress-Security-Benchmark.docx)**: A Microsoft Word .docx version formatted as a template to generate the PDF.
+- **[WordPress-Security-Benchmark.pdf](WordPress-Security-Benchmark.pdf)**: The PDF version of the guide. (Will make it prettier in the future.)
 
 ---
 
