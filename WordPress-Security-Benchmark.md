@@ -474,7 +474,7 @@ This section covers MySQL/MariaDB configuration relevant to WordPress security.
 
 **Assessment Status:** Automated
 
-**Description:** The MySQL/MariaDB user account used by WordPress should have only the privileges required for normal operation: SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, and DROP on the WordPress database only.
+**Description:** The MySQL/MariaDB user account used by WordPress should have only the privileges required for normal operation: SELECT, INSERT, UPDATE, and DELETE on the WordPress database only. The CREATE, ALTER, INDEX, and DROP privileges are generally not needed for daily use and should be limited to improve security. 
 
 **Rationale:** Granting excessive privileges (e.g., FILE, SUPER, GRANT) increases the impact of a SQL injection vulnerability. With minimal privileges, an attacker who achieves SQLi cannot read arbitrary files, modify grants, or perform administrative operations.
 
