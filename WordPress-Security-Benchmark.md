@@ -88,6 +88,7 @@ Restart the web server after changes.
 **Default Value:** Nginx: TLSv1 TLSv1.1 TLSv1.2 (all enabled). Apache: All protocols enabled.
 
 **References:** https://ssl-config.mozilla.org/
+
 ---
 
 
@@ -1711,6 +1712,8 @@ Review custom AI integration code for direct output of AI-generated content with
 3. Never pass AI-generated content directly to `$wpdb->query()` without `$wpdb->prepare()`.
 
 **Default Value:** No WordPress-specific defaults; depends on plugin implementation.
+
+---
 
 #### 11.3 Ensure AI tool usage is governed by policy
 
