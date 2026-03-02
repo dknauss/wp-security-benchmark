@@ -1,16 +1,10 @@
-# WordPress Security Benchmark
-
-**Full Stack Hardening Guide**
-
-WordPress 6.x on Linux (Ubuntu/Debian)
-
-Nginx or Apache • PHP 8.x • MySQL 8.x / MariaDB 10.x+
-
-[Dan Knauss](https://dan.knauss.ca/)
-
-March 1, 2026
-
-Version 1.0
+---
+title: "WordPress Security Benchmark"
+subtitle: "Full Stack Hardening Guide — WordPress 6.x on Linux (Ubuntu/Debian)"
+author: "General Editor: Dan Knauss"
+date: "March 2, 2026"
+version: "1.0"
+---
 
 ## Overview
 
