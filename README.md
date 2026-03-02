@@ -105,7 +105,7 @@ This benchmark is one of four complementary documents covering WordPress securit
 
 ## AI-Assisted Editorial Process
 
-This document and the three related documents in this series are revised with the assistance of frontier LLMs. Multiple models independently review all four documents for factual errors, outdated guidance, and cross-document misalignments, with the WordPress Advanced Administration Handbook as primary authority. A human editor reviews, approves, or rejects every recommended change before it is applied. For the full methodology, see **[AI-Assisted Documentation Processes](https://github.com/dknauss/ai-assisted-docs)**.
+This document and the three related documents in this series are revised with the assistance of frontier LLMs. Multiple models independently review all four documents for factual errors, outdated guidance, and cross-document misalignments, with the WordPress Advanced Administration Handbook as the primary authority. A human editor reviews, approves, or rejects every recommended change before it is applied. For the full methodology, see **[AI-Assisted Documentation Processes](https://github.com/dknauss/ai-assisted-docs)**.
 
 ## Contributing
 
@@ -119,4 +119,4 @@ This project is licensed under the [Creative Commons Attribution-ShareAlike 4.0 
 
 ---
 
-*Created by Dan Knauss*
+*Created by [Dan Knauss](https://dan.knauss.ca/)*
