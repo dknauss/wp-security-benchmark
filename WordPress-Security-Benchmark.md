@@ -1575,7 +1575,7 @@ mysql --version
 
 This section addresses the deployment and configuration of a Web Application Firewall (WAF) to protect the WordPress application.
 
-#### 9.1 Ensure Web Application Firewall is Configured
+#### 9.1 Ensure Web Application Firewall is configured
 
 **Profile Applicability:** **Level 2**
 
@@ -1993,7 +1993,7 @@ The following table summarizes all recommendations in this benchmark.
 | :--- | :-------------------------------------------------- | :-------- | :------------- |
 | 1.1  | Ensure TLS 1.2+ is enforced                         | L1        | Automated      |
 | 1.2  | Ensure HTTP security headers are configured         | L1        | Automated      |
-| 1.3  | Ensure server tokens are hidden                     | L1        | Automated      |
+| 1.3  | Ensure server tokens and version info are hidden    | L1        | Automated      |
 | 1.4  | Ensure PHP execution is blocked in uploads          | L1        | Automated      |
 | 1.5  | Ensure rate limiting is configured for all APIs    | L1        | Automated      |
 | 2.1  | Ensure expose_php is disabled                       | L1        | Automated      |
@@ -2027,7 +2027,7 @@ The following table summarizes all recommendations in this benchmark.
 | 7.2  | Ensure file integrity monitoring is configured      | L2        | Automated      |
 | 7.3  | Ensure server-level malware detection is configured | L2        | Manual         |
 | 8.1  | Ensure unused plugins and themes are removed        | L1        | Automated      |
-| 8.2  | Ensure extensions are from trusted sources          | L1        | Manual         |
+| 8.2  | Ensure plugins and themes are from trusted sources  | L1        | Manual         |
 | 8.3  | Ensure plugin/theme updates are applied promptly    | L1        | Manual         |
 | 8.4  | Ensure a Software Bill of Materials is maintained   | L2        | Manual         |
 | 9.1  | Ensure Web Application Firewall is configured       | L2        | Manual         |
@@ -2039,8 +2039,8 @@ The following table summarizes all recommendations in this benchmark.
 | 12.2 | Ensure SFTP is used and FTP is disabled             | L1        | Automated      |
 | 12.3 | Ensure a host-based firewall is configured          | L1        | Automated      |
 | 12.4 | Ensure per-site process isolation is configured     | L2        | Manual         |
-| 13.1 | Ensure Multisite Super Admin accounts are minimized | L1        | Manual         |
-| 13.2 | Ensure network-activated plugins are reviewed       | L2        | Manual         |
+| 13.1 | Ensure Super Admin accounts are minimized and audited | L1      | Manual         |
+| 13.2 | Ensure network plugins are reviewed for cross-site impact | L2  | Manual         |
 
 ## Related Documents
 
