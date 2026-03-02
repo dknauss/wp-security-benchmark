@@ -103,6 +103,10 @@ This benchmark is one of four complementary documents covering WordPress securit
 - [Hardening WordPress](https://developer.wordpress.org/advanced-administration/security/) — Official WordPress.org Advanced Administration Handbook, including the [Hardening](https://developer.wordpress.org/advanced-administration/security/hardening/) subsection.
 - [Securing WordPress](https://cio.ubc.ca/information-security/policy-standards-resources/M5/gui-securing-wordpress) — Information Security Guideline from the University of British Columbia's Office of the CIO.
 
+## AI-Assisted Editorial Process
+
+This document and the three related documents in this series are revised with the assistance of frontier LLMs. Multiple models independently review all four documents for factual errors, outdated guidance, and cross-document misalignments, with the WordPress Advanced Administration Handbook as primary authority. A human editor reviews, approves, or rejects every recommended change before it is applied. For the full methodology, see **[AI-Assisted Documentation Processes](https://github.com/dknauss/ai-assisted-docs)**.
+
 ## Contributing
 
 Contributions are welcome! If you find an error or have an improvement for the benchmark, please open an issue or submit a pull request.
