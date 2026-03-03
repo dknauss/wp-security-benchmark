@@ -2,7 +2,7 @@
 title: "WordPress Security Benchmark"
 subtitle: "Full Stack Hardening Guide — WordPress 6.x on Linux (Ubuntu/Debian)"
 author: "General Editor: Dan Knauss"
-date: "March 2, 2026"
+date: "March 3, 2026"
 version: "1.0"
 
 ---
