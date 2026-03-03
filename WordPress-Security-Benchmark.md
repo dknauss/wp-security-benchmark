@@ -59,7 +59,7 @@ This section provides recommendations for hardening the web server (Nginx or Apa
 
 #### 1.1 Ensure TLS 1.2+ is enforced
 
-**Profile Applicability:** **Level 1**
+**Profile Applicability:** **Level 2**
 
 **Assessment Status:** Automated
 
@@ -621,17 +621,17 @@ Restart MySQL.
 ---
 
 
-#### 3.3 Ensure a non-default table prefix is used
+#### 3.3 Review database table prefix strategy (optional obscurity control)
 
-**Profile Applicability:** **Level 1**
+**Profile Applicability:** **Level 2**
 
 **Assessment Status:** Manual
 
-**Description:** WordPress should be configured with a database table prefix other than the default wp_ to make automated SQL injection attacks less effective.
+**Description:** A non-default database table prefix may be used as an optional defense-in-depth control, but it should not be treated as a primary hardening measure.
 
-**Rationale:** Automated attack tools typically assume the default wp_ prefix. A non-default prefix requires attackers to discover the actual table names, adding a layer of difficulty.
+**Rationale:** WordPress hardening guidance classifies table-prefix changes as a form of security through obscurity with limited security value. Prioritize patching, least privilege, and secure coding controls before prefix customization.
 
-**Impact:** Changing the prefix on an existing installation requires updating all table names and option/usermeta values that reference the prefix. This is best done at installation time.
+**Impact:** Changing the prefix on an existing installation requires updating table names and option/usermeta values and can break plugins if done incorrectly.
 
 **Audit:**
 
@@ -639,15 +639,14 @@ Inspect `wp-config.php`:
 ```
 $ grep 'table_prefix' /path/to/wp-config.php
 ```
-Verify the value is not `wp_`.
+Record whether the installation uses the default `wp_` prefix and ensure the choice is documented in deployment standards.
 
 **Remediation:**
 
-In `wp-config.php`, set during installation:
+Keep the default prefix unless your environment has a documented policy requiring customization. If customization is required, set it only during initial provisioning and test plugin compatibility:
 ```
 $table_prefix = 'wxyz_';
 ```
-Use a short, random string. Do not use personally identifiable or guessable values.
 
 **Default Value:** `$table_prefix = 'wp_';`
 
@@ -655,7 +654,7 @@ Use a short, random string. Do not use personally identifiable or guessable valu
 **References:**
 
 - [WordPress `wp-config.php` — `table_prefix`](https://developer.wordpress.org/advanced-administration/wordpress/wp-config/)
-- [WP-CLI `wp config`](https://developer.wordpress.org/cli/commands/config/)
+- [WordPress Hardening — Security through Obscurity](https://developer.wordpress.org/advanced-administration/security/hardening/security-through-obscurity/)
 
 ---
 
@@ -717,36 +716,42 @@ general_log_file = /var/log/mysql/mysql-general.log
 
 This section covers security settings in `wp-config.php` and WordPress core behavior.
 
-#### 4.1 Ensure `DISALLOW_FILE_MODS` is set to true
+#### 4.1 Ensure `DISALLOW_FILE_EDIT` is set to true (baseline)
 
 **Profile Applicability:** **Level 1**
 
 **Assessment Status:** Automated
 
-**Description:** The `DISALLOW_FILE_MODS` constant should be defined as `true` in `wp-config.php`. This prevents all file modifications through the WordPress admin interface, including plugin and theme installation, updates, and code editing.
+**Description:** The `DISALLOW_FILE_EDIT` constant should be defined as `true` in `wp-config.php` to disable the built-in theme and plugin editor.
 
-**Note:** WordPress's official hardening documentation recommends `DISALLOW_FILE_EDIT`, which disables only the built-in file editor (equivalent to removing the `edit_themes`, `edit_plugins`, and `edit_files` capabilities). `DISALLOW_FILE_MODS` is a superset of that: it also prevents plugin and theme installation and updates through the Dashboard. This benchmark recommends `DISALLOW_FILE_MODS` for a more comprehensive lockdown. Sites that still require Dashboard-based plugin/theme updates but wish to block the file editor may use `DISALLOW_FILE_EDIT` instead.
+**Note:** `DISALLOW_FILE_MODS` is a stricter superset that also blocks plugin/theme installation and updates from the Dashboard. Use `DISALLOW_FILE_MODS` only for hardened profiles with a documented external update workflow.
 
-**Rationale:** If an attacker gains admin access (e.g., through a compromised account), `DISALLOW_FILE_MODS` prevents them from installing malicious plugins, modifying theme files, or uploading web shells through the admin interface. Updates should be handled through deployment pipelines or server-side automation.
+**Rationale:** The built-in editor is a common post-compromise persistence vector after admin-account takeover. Disabling it reduces risk without blocking normal update paths.
 
-**Impact:** Plugin and theme updates cannot be performed through the Dashboard. An alternative update mechanism (`wp-cli`, CI/CD pipeline, or managed hosting) is required.
+**Impact:** Administrators lose browser-based code editing in `wp-admin`. Theme/plugin updates continue to work unless `DISALLOW_FILE_MODS` is also enabled.
 
 **Audit:**
 
 ```
-$ grep 'DISALLOW_FILE_MODS' /path/to/wp-config.php
+$ grep 'DISALLOW_FILE_EDIT' /path/to/wp-config.php
 ```
-Verify: `define( 'DISALLOW_FILE_MODS', true );`
+Verify: `define( 'DISALLOW_FILE_EDIT', true );`
+
+If `DISALLOW_FILE_MODS` is also set, verify deployment automation handles plugin/theme/core updates.
 
 **Remediation:**
 
 Add to `wp-config.php` before 'That's all, stop editing!':
+`define( 'DISALLOW_FILE_EDIT', true );`
+
+Optional hardened profile:
 `define( 'DISALLOW_FILE_MODS', true );`
 
-**Default Value:** Not set (file modifications allowed).
+**Default Value:** Not set (editor enabled).
 
 **References:**
 
+- [WordPress Hardening — Disable File Editing](https://developer.wordpress.org/advanced-administration/security/hardening/disable-file-editing/)
 - [WordPress Hardening](https://developer.wordpress.org/advanced-administration/security/hardening/)
 
 ---
@@ -950,15 +955,15 @@ Replace the key definitions in `wp-config.php` with the generated output.
 ---
 
 
-#### 4.7 Ensure `wp-cron.php` is replaced with a system cron job
+#### 4.7 Consider replacing `wp-cron.php` with a system cron job
 
-**Profile Applicability:** **Level 1**
+**Profile Applicability:** **Level 2**
 
 **Assessment Status:** Automated
 
-**Description:** WordPress's built-in pseudo-cron (`wp-cron.php`) should be disabled and replaced with a real system-level cron job. `wp-cron.php` is triggered on every page load, making execution timing unpredictable and exposing an additional PHP endpoint to the network.
+**Description:** For higher operational reliability, WordPress's built-in pseudo-cron (`wp-cron.php`) can be disabled and replaced with a real system-level cron job. This improves scheduling predictability, especially on very low-traffic or very high-traffic sites.
 
-**Rationale:** `wp-cron.php` can be abused for resource exhaustion by sending rapid requests to the endpoint. It is also unreliable on low-traffic sites where scheduled tasks may not fire at all. A system cron job executes on a predictable schedule regardless of traffic and eliminates an unnecessary public PHP endpoint.
+**Rationale:** `wp-cron.php` is traffic-triggered, so jobs can be delayed on low-traffic sites and bursty on high-traffic sites. A system cron schedule is deterministic. This is primarily a reliability/operations control with secondary attack-surface benefits when direct `wp-cron.php` access is blocked.
 
 **Impact:** Disabling `wp-cron.php` without configuring a system cron replacement will prevent scheduled tasks (e.g., publishing scheduled posts, checking for updates, sending email digests) from running.
 
@@ -1222,48 +1227,53 @@ Implement an action-gated reauthentication solution. Configure the "Action Regis
 ---
 
 
-#### 5.6 Ensure unauthenticated REST API access is restricted
+#### 5.6 Ensure REST API exposure is intentionally scoped
 
 **Profile Applicability:** **Level 2**
 
 **Assessment Status:** Automated
 
-**Description:** The WordPress REST API should be restricted to authenticated users only, except for specific public endpoints that require unauthenticated access (e.g., for front-end search or decoupled front-ends).
+**Description:** Keep required public REST endpoints available, and restrict only endpoints that should not be public (for example, user-enumeration routes or custom sensitive routes).
 
-**Rationale:** By default, the REST API is open and provides significant information about the site structure, content, and users. Restricting access reduces the attack surface and prevents information leakage to unauthenticated actors.
+**Rationale:** WordPress REST API is designed to expose some public content endpoints without authentication. Blanket authentication requirements often break themes, plugins, and headless front ends. Security should be applied at the route and permission-callback level.
 
-**Impact:** Will break decoupled (headless) installations or plugins that rely on unauthenticated REST API access for front-end functionality.
+**Impact:** Endpoint-level restrictions require route inventory and testing, but avoid the broad compatibility breakage caused by global API blocking.
 
 **Audit:**
 
 ```
 $ curl -sI https://example.com/wp-json/wp/v2/posts
 ```
-If the response is `200 OK`, unauthenticated access is allowed. A `401 Unauthorized` or `403 Forbidden` indicates restricted access.
+Expected for public sites: `200 OK`.
+
+```
+$ curl -s https://example.com/wp-json/wp/v2/users
+```
+Verify public user enumeration is blocked or minimized per site policy.
 
 **Remediation:**
 
-Add a must-use plugin:
+1. Keep public content routes required by your architecture.
+2. Block or harden user-enumeration and other sensitive routes.
+3. Use permission callbacks on custom endpoints.
+
+Example (must-use plugin) to block unauthenticated users endpoints:
 ```php
-add_filter( 'rest_authentication_errors', function( $result ) {
-    if ( ! empty( $result ) ) {
-        return $result;
-    }
-    if ( ! is_user_logged_in() ) {
-        return new WP_Error( 'rest_not_logged_in', 'You are not currently logged in.', array( 'status' => 401 ) );
-    }
-    return $result;
-});
+add_filter( 'rest_endpoints', function( $endpoints ) {
+    unset( $endpoints['/wp/v2/users'] );
+    unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+    return $endpoints;
+} );
 ```
 
-**Default Value:** REST API is accessible to unauthenticated users.
+**Default Value:** Public REST endpoints are available by default.
 
 
 **References:**
 
-- [`rest_authentication_errors` Hook](https://developer.wordpress.org/reference/hooks/rest_authentication_errors/)
-- [WordPress REST API FAQ — Authentication Requirement](https://developer.wordpress.org/rest-api/frequently-asked-questions/)
 - [WordPress REST API Authentication](https://developer.wordpress.org/rest-api/using-the-rest-api/authentication/)
+- [WordPress REST API FAQ](https://developer.wordpress.org/rest-api/frequently-asked-questions/)
+- [WordPress REST API Users Endpoint](https://developer.wordpress.org/rest-api/reference/users/)
 
 ---
 
@@ -1280,7 +1290,7 @@ add_filter( 'rest_authentication_errors', function( $result ) {
 
 **Impact:** Users may need to update existing weak passwords. Requires a plugin for advanced enforcement (e.g., Wordfence, iThemes Security, or Passthrough Authentication).
 
-**Note on Password Hashing:** As of WordPress 6.8, user passwords are hashed with bcrypt by default. Argon2id is supported on compatible PHP environments and provides stronger resistance to GPU-accelerated brute-force attacks. For high-security deployments, consider enabling Argon2id via the `wp_hash_password` core filter, typically implemented as a must-use plugin.
+**Note on Password Hashing:** As of WordPress 6.8, user passwords are hashed with bcrypt by default. Argon2id is supported on compatible PHP environments and provides stronger resistance to GPU-accelerated brute-force attacks. For high-security deployments, consider enabling Argon2id via the `wp_hash_password_algorithm` filter, typically implemented as a must-use plugin.
 
 **Audit:**
 
@@ -1363,21 +1373,25 @@ add_action( 'init', function() {
 
 This section covers file ownership and permission settings for the WordPress installation.
 
-#### 6.1 Ensure WordPress files are owned by a non-web-server user
+#### 6.1 Ensure file ownership model is documented and least-privilege
 
-**Profile Applicability:** **Level 1**
+**Profile Applicability:** **Level 2**
 
 **Assessment Status:** Automated
 
-**Description:** WordPress files should be owned by a system user account, not the web server process user (www-data, nginx, apache). The web server should have read access only, with write access limited to specific directories (uploads, cache).
+**Description:** Document and enforce one least-privilege ownership model per environment. Dedicated/self-managed hosts should prefer a non-web-server file owner (for example, `wp_user:www-data`). Shared/managed environments may use web-server ownership only with explicit compensating controls.
 
-**Note:** WordPress's official documentation recommends 755 for directories and 644 for files as the standard baseline. This benchmark recommends the more restrictive 750/640 (removing world-read permissions) for production environments where no public processes outside the web server group require direct file system access. Either approach is acceptable; choose 755/644 if shared hosting or third-party tools require world-read, and 750/640 for tighter control.
+**Rationale:** Ownership strategy is environment-dependent. A non-web-server owner can reduce post-compromise file tampering risk, but some platforms constrain ownership. Security outcomes depend on the full control set (permissions, deployment model, update path), not ownership alone.
 
-**Rationale:** If the web server process is compromised, file ownership by a separate user prevents the attacker from modifying WordPress core, plugin, or theme files.
-
-**Impact:** WordPress auto-updates and plugin installations via the Dashboard require write access to the file system. With DISALLOW_FILE_MODS enabled (see 4.1), this is not needed.
+**Impact:** Teams must choose and document a supported model. Changing ownership on an existing deployment can break updates, plugin installs, and backup tooling if not tested.
 
 **Audit:**
+
+1. Verify a documented ownership model exists for each environment (production/staging/dev).
+2. Verify on-host ownership matches the documented model.
+3. Verify compensating controls are present when web-server ownership is used.
+
+Example ownership checks:
 
 ```
 $ stat -c '%U:%G' /path/to/wordpress/wp-config.php
@@ -1386,32 +1400,26 @@ $ stat -c '%U:%G' /path/to/wordpress/wp-config.php
 ```
 $ stat -c '%U:%G' /path/to/wordpress/wp-includes/version.php
 ```
-Verify files are not owned by www-data, nginx, or apache.
 
 **Remediation:**
 
+**Model A (preferred on dedicated/self-managed hosts):**
+
 ```
 sudo chown -R wp_user:www-data /path/to/wordpress/
-```
-
-```
 sudo find /path/to/wordpress/ -type d -exec chmod 750 {} \;
-```
-
-```
 sudo find /path/to/wordpress/ -type f -exec chmod 640 {} \;
-```
-
-```
-# Set wp-config.php to read-only (see 6.2 for details)
 sudo chmod 400 /path/to/wordpress/wp-config.php
-
-# Allow web server to write to uploads (if needed)
-sudo find /path/to/wordpress/wp-content/uploads -type d -exec chmod 775 {} \;
-sudo find /path/to/wordpress/wp-content/uploads -type f -exec chmod 664 {} \;
 ```
 
-**Default Value:** Ownership depends on installation method. Many guides set www-data as owner.
+**Model B (shared/managed hosting constraints):**
+
+- Keep provider-required ownership model.
+- Enforce baseline permissions (755/644 or stricter where supported).
+- Set `DISALLOW_FILE_EDIT` as baseline.
+- If feasible, enable `DISALLOW_FILE_MODS` with an external update pipeline.
+
+**Default Value:** Ownership model depends on host provisioning and control panel behavior.
 
 
 **References:**
@@ -1421,16 +1429,14 @@ sudo find /path/to/wordpress/wp-content/uploads -type f -exec chmod 664 {} \;
 
 ---
 
-
 #### 6.2 Ensure `wp-config.php` has restrictive permissions
-
 **Profile Applicability:** **Level 1**
 
 **Assessment Status:** Automated
 
 **Description:** `wp-config.php` must have the most restrictive file permissions possible. WordPress's official hardening documentation recommends 400 (owner read-only) or 440 (owner and group read-only).
 
-- **400** is the preferred setting for production systems where `DISALLOW_FILE_MODS` is set and no deployment automation writes to the file.
+- **400** is preferred when configuration is managed by deployment automation and no runtime process needs write access.
 - **600** may be used temporarily when deployment scripts must write to the file; restore to 400 immediately after.
 - **440** is appropriate only when the PHP-FPM pool runs as a dedicated group and the owning group is that pool's group — never add the web server process user (www-data, nginx, apache) to the file's owning group in a shared-hosting context.
 
@@ -1474,7 +1480,7 @@ chown wp_user:wp_user /path/to/wordpress/wp-config.php
 
 **Description:** Where server configuration allows, `wp-config.php` should be moved one directory above the web document root. WordPress automatically detects this placement and loads the file from the parent directory.
 
-**Rationale:** Placing `wp-config.php` above the document root prevents direct HTTP access to the file entirely, even if a web server misconfiguration exposes PHP source code. This provides defense-in-depth beyond file permissions alone.
+**Rationale:** Placing `wp-config.php` above the document root can provide defense in depth by reducing direct web exposure. However, WordPress documentation also notes this is debated and can backfire if web-root boundaries are misconfigured.
 
 **Impact:** Some hosting environments (e.g., shared hosting with restricted directory structures, some containerized setups) may not support this configuration. Additionally, if the WordPress installation is in the web root itself (rather than a subdirectory), the parent directory must not be another site's web root.
 
@@ -1708,7 +1714,7 @@ Verify each plugin is available in the WordPress.org repository or from a known 
 1\. Audit all installed plugins and themes for their source.
 2\. Remove any plugins not traceable to a legitimate source.
 3\. Establish an approved plugin list for the organization.
-4\. Block plugin installation from the admin interface (see 4.1: DISALLOW_FILE_MODS).
+4\. Disable the built-in file editor by default (see 4.1: `DISALLOW_FILE_EDIT`). Use `DISALLOW_FILE_MODS` only for hardened profiles with external update workflows.
 
 **Default Value:** WordPress allows installation from any ZIP file by default.
 
@@ -2070,9 +2076,9 @@ $ sudo systemctl restart sshd
 
 **Assessment Status:** Automated
 
-**Description:** File transfers to and from the server must use SFTP (SSH File Transfer Protocol) or SCP. Plain FTP and FTPS must be disabled. No FTP server software should be installed.
+**Description:** Prefer SFTP (SSH File Transfer Protocol) or SCP for file transfers. Plain FTP must be disabled. FTPS may be permitted temporarily for legacy interoperability, with enforced TLS and a migration plan to SFTP.
 
-**Rationale:** FTP transmits credentials and data in cleartext, making it trivial to intercept on a network. Even FTPS (FTP over TLS) has known weaknesses in channel binding. SFTP operates over the encrypted SSH channel and requires no additional server software.
+**Rationale:** FTP transmits credentials and data in cleartext and should not be used. SFTP operates over SSH and is simpler to secure operationally. FTPS can be secured, but typically introduces higher operational complexity than SFTP.
 
 **Impact:** Users and deployment tools relying on FTP must be migrated to SFTP. Most modern FTP clients support SFTP natively.
 
@@ -2115,11 +2121,11 @@ $ grep 'Subsystem.*sftp' /etc/ssh/sshd_config
 
 **Assessment Status:** Automated
 
-**Description:** A host-based firewall (e.g., UFW on Ubuntu/Debian, firewalld on RHEL/CentOS) must be enabled and configured to restrict inbound traffic to only required ports: HTTP (80), HTTPS (443), and SSH on a non-standard port.
+**Description:** A host-based firewall (e.g., UFW on Ubuntu/Debian, firewalld on RHEL/CentOS) must be enabled and configured to restrict inbound traffic to only required ports: HTTP (80), HTTPS (443), and SSH.
 
-**Rationale:** A host-based firewall provides a final layer of network defense, blocking unauthorized access to services running on the server even if upstream network controls fail. Restricting SSH to a non-standard port reduces automated scanning noise.
+**Rationale:** A host-based firewall provides a final layer of network defense, blocking unauthorized access to services running on the server even if upstream network controls fail. Changing SSH to a non-standard port is optional and mainly reduces scanning noise.
 
-**Impact:** Moving SSH to a non-standard port requires updating all SSH client configurations and deployment scripts. Misconfigured rules may lock out administrators.
+**Impact:** Firewall misconfiguration can lock out administrators; validate SSH access before applying deny-by-default rules.
 
 **Audit:**
 
@@ -2306,24 +2312,24 @@ The following table summarizes all recommendations in this benchmark.
 | 2.5  | Ensure PHP session security is configured           | L1        | Automated      |
 | 3.1  | Ensure DB user has minimal privileges               | L1        | Automated      |
 | 3.2  | Ensure DB is not externally accessible              | L1        | Automated      |
-| 3.3  | Ensure non-default table prefix is used             | L1        | Manual         |
+| 3.3  | Review table prefix strategy (optional)             | L2        | Manual         |
 | 3.4  | Ensure database query logging is enabled            | L2        | Automated      |
-| 4.1  | Ensure DISALLOW_FILE_MODS is true                   | L1        | Automated      |
+| 4.1  | Ensure DISALLOW_FILE_EDIT is true (baseline)        | L1        | Automated      |
 | 4.2  | Ensure FORCE_SSL_ADMIN is true                      | L1        | Automated      |
 | 4.3  | Ensure debug mode is disabled                       | L1        | Automated      |
 | 4.4  | Ensure XML-RPC is disabled                          | L1        | Automated      |
 | 4.5  | Ensure automatic core updates are enabled           | L1        | Automated      |
 | 4.6  | Ensure unique auth keys and salts are configured    | L1        | Automated      |
-| 4.7  | Ensure wp-cron.php is replaced with system cron     | L1        | Automated      |
+| 4.7  | Consider replacing wp-cron.php with system cron     | L2        | Automated      |
 | 5.1  | Ensure 2FA is required for administrators           | L1        | Manual         |
 | 5.2  | Ensure admin accounts are minimized                 | L1        | Manual         |
 | 5.3  | Ensure max session lifetime is enforced             | L1        | Automated      |
 | 5.4  | Ensure user enumeration is prevented                | L1        | Automated      |
 | 5.5  | Ensure reauthentication for privileged actions      | L2        | Manual         |
-| 5.6  | Ensure unauthenticated REST API is restricted       | L2        | Automated      |
+| 5.6  | Ensure REST API exposure is intentionally scoped    | L2        | Automated      |
 | 5.7  | Ensure strong password policy is enforced          | L1        | Manual         |
 | 5.8  | Ensure roles and capabilities are defined in code   | L2        | Manual         |
-| 6.1  | Ensure files are owned by non-web-server user       | L1        | Automated      |
+| 6.1  | Ensure file ownership model is least-privilege      | L2        | Automated      |
 | 6.2  | Ensure `wp-config.php` has restrictive permissions    | L1        | Automated      |
 | 6.3  | Ensure `wp-config.php` is above document root         | L2        | Manual         |
 | 7.1  | Ensure user activity logging is enabled             | L1        | Manual         |
@@ -2344,6 +2350,37 @@ The following table summarizes all recommendations in this benchmark.
 | 12.4 | Ensure per-site process isolation is configured     | L2        | Manual         |
 | 13.1 | Ensure Super Admin accounts are minimized and audited | L1      | Manual         |
 | 13.2 | Ensure network plugins are reviewed for cross-site impact | L2  | Manual         |
+
+
+## Cross-Document Control Classification Matrix
+
+Use this matrix to keep this benchmark aligned with the Hardening Guide and Operations Runbook.
+
+| **Control Area** | **Baseline** | **Optional Hardened** | **Environment-Specific** |
+| :--- | :--- | :--- | :--- |
+| File editor/mods | `DISALLOW_FILE_EDIT = true` | `DISALLOW_FILE_MODS = true` with external update pipeline | Dashboard updates allowed where managed hosting controls patch cadence |
+| REST API | Public content routes available; sensitive routes require auth/permissions | Block user-enumeration routes and tighten custom endpoint callbacks | Global unauthenticated blocking only for private/intranet architectures |
+| XML-RPC | Keep only if business/integration-required | Disable via `xmlrpc_enabled` filter or server-level block when unused | Selective allowlists for required integrations (for example, mobile/Jetpack) |
+| File ownership | Least-privilege ownership model documented per environment | Per-site process isolation + immutable deploy artifacts | Provider-constrained ownership with compensating controls |
+| SSH access | Key-based auth, no passwords, host firewall/fail2ban | Non-standard SSH port to reduce scanner noise | No SSH on managed platforms with equivalent provider controls |
+
+## Appendix B: Deprecated and Invalid Constants Guardrail
+
+The following symbols should **not** be used in benchmark remediation snippets:
+
+- `FORCE_SSL_LOGIN` (deprecated)
+- `DISALLOW_PLUGIN_EDITING` (not a WordPress core constant)
+- `DISALLOW_PLUGIN_ACTIVATION` (not a WordPress core constant)
+- `SECURE_LOGGED_IN_COOKIE` (not a WordPress core constant)
+- `define( 'XMLRPC_REQUEST', false );` (`XMLRPC_REQUEST` is a request-context constant, not a config toggle)
+
+When documenting Argon2 support, refer to the `wp_hash_password_algorithm` filter.
+
+Suggested CI/QA guardrail (documentation lint):
+
+```bash
+rg -n "FORCE_SSL_LOGIN|DISALLOW_PLUGIN_EDITING|DISALLOW_PLUGIN_ACTIVATION|SECURE_LOGGED_IN_COOKIE|define\s*\(\s*'XMLRPC_REQUEST'\s*,\s*false\s*\)|wp_hash_password\s+filter" WordPress-Security-Benchmark.md
+```
 
 ## Related Documents
 
