@@ -839,7 +839,7 @@ If logging is needed, direct to a non-public path:
 
 **Description:** The XML-RPC interface (`xmlrpc.php`) should be disabled unless specifically required by a remote publishing client or integration.
 
-**Rationale:** XML-RPC is commonly exploited for brute-force amplification attacks (the `system.multicall` method allows hundreds of password attempts in a single HTTP request) and DDoS amplification via pingbacks.
+**Rationale:** XML-RPC is commonly exploited for brute-force amplification attacks (the `system.multicall` method allows hundreds of password attempts in a single HTTP request) and DDoS amplification via pingbacks. While WordPress core mitigates XML eXternal Entity (XXE) and entity expansion attacks by disabling the loading of custom XML entities, disabling XML-RPC entirely removes the endpoint from the attack surface.
 
 **Impact:** Disabling XML-RPC will break Jetpack (which requires it for WordPress.com communication), the WordPress mobile app (older versions), and any third-party tool that uses the XML-RPC API.
 
