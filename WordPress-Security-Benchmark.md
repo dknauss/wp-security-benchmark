@@ -49,9 +49,11 @@ This benchmark defines two configuration profiles:
 
 **Manual:** Compliance requires human judgment, review of policies, or inspection of settings through a graphical interface.
 
----
+```{=latex}
+\newpage
+```
 
-## 1 Web Server Configuration
+## 1.0 Web Server Configuration
 
 This section provides recommendations for hardening the web server (Nginx or Apache) that serves the WordPress application.
 
@@ -309,7 +311,7 @@ location ~ ^/wp-json/ {
 ---
 
 
-## 2 PHP Configuration
+## 2.0 PHP Configuration
 
 This section provides recommendations for securing the PHP runtime environment.
 
@@ -524,7 +526,7 @@ session.use_only_cookies = 1
 ---
 
 
-## 3 Database Configuration
+## 3.0 Database Configuration
 
 This section covers MySQL/MariaDB configuration relevant to WordPress security.
 
@@ -712,7 +714,7 @@ general_log_file = /var/log/mysql/mysql-general.log
 ---
 
 
-## 4 WordPress Core Configuration
+## 4.0 WordPress Core Configuration
 
 This section covers security settings in `wp-config.php` and WordPress core behavior.
 
@@ -1003,7 +1005,7 @@ This is safe because `wp-cli` executes PHP directly and does not use HTTP.
 ---
 
 
-## 5 Authentication and Access Control
+## 5.0 Authentication and Access Control
 
 This section addresses user authentication, session management, and role-based access control within WordPress.
 
@@ -1352,7 +1354,7 @@ add_action( 'init', function() {
 ---
 
 
-## 6 File System Permissions
+## 6.0 File System Permissions
 
 This section covers file ownership and permission settings for the WordPress installation.
 
@@ -1506,7 +1508,7 @@ $ chmod 750 /var/www/
 ---
 
 
-## 7 Logging and Monitoring
+## 7.0 Logging and Monitoring
 
 This section addresses audit logging, activity monitoring, and intrusion detection for WordPress.
 
@@ -1626,7 +1628,7 @@ This is a manual check. Verify that:
 ---
 
 
-## 8 Supply Chain and Extension Management
+## 8.0 Supply Chain and Extension Management
 
 This section addresses the security of WordPress plugins, themes, and their update processes.
 
@@ -1806,7 +1808,7 @@ mysql --version
 ---
 
 
-## 9 Web Application Firewall
+## 9.0 Web Application Firewall
 
 This section addresses the deployment and configuration of a Web Application Firewall (WAF) to protect the WordPress application.
 
@@ -1853,7 +1855,7 @@ https://github.com/coreruleset/wordpress-rule-exclusions-plugin
 ---
 
 
-## 10 Backup and Recovery
+## 10.0 Backup and Recovery
 
 This section addresses backup strategy, offsite storage, and recovery procedures for WordPress deployments.
 
@@ -1899,7 +1901,7 @@ This is a manual check. Verify that:
 
 ---
 
-## 11 AI and Generative AI Security
+## 11.0 AI and Generative AI Security
 
 AI tools are increasingly integrated into WordPress workflows for content generation, chatbots, code assistance, and site management. IBM's Cost of a Data Breach Report (2025) found that 13% of organizations experienced a breach involving an AI model or application, and 97% of those breaches involved systems lacking proper access controls. This section provides controls for securing AI integrations in WordPress environments.
 
@@ -2011,7 +2013,7 @@ Review custom AI integration code for direct output of AI-generated content with
 ---
 
 
-## 12 Server Access and Network
+## 12.0 Server Access and Network
 
 This section addresses secure remote access to the server hosting WordPress and host-level network controls.
 
@@ -2198,7 +2200,7 @@ listen.group = www-data
 ---
 
 
-## 13 Multisite Security
+## 13.0 Multisite Security
 
 This section addresses security considerations specific to WordPress Multisite installations.
 
