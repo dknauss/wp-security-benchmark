@@ -1038,7 +1038,7 @@ Recommended: Enforce 2FA as mandatory for admin roles with a grace period for in
 **References:**
 
 - [NIST SP 800-63B — Multi-Factor Authentication](https://pages.nist.gov/800-63-4/sp800-63b.html)
-https://developer.wordpress.org/advanced-administration/security/hardening/
+- [WordPress Developer Documentation](https://developer.wordpress.org/) › [Advanced Administration Handbook](https://developer.wordpress.org/advanced-administration/) › [Security](https://developer.wordpress.org/advanced-administration/security/) › [Hardening](https://developer.wordpress.org/advanced-administration/security/hardening/) › [MFA](https://developer.wordpress.org/advanced-administration/security/mfa/)
 
 ---
 
