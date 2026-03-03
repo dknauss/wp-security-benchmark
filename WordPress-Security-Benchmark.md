@@ -1018,6 +1018,8 @@ location = /wp-cron.php {
 ```
 This is safe because WP-CLI executes PHP directly and does not use HTTP.
 
+> For the complete operational procedure — crontab installation, web server blocking, expected output, rollback, and escalation — see [WordPress Operations Runbook](https://github.com/dknauss/wordpress-runbook-template) §6.6.
+
 **Default Value:** `wp-cron.php` is enabled and triggered on every page load by default.
 
 
@@ -1056,6 +1058,8 @@ This is a manual check. Verify that:
 
 Install and configure `two-factor` (or an approved equivalent). Require 2FA enrollment for all users with Administrator, Editor, or Shop Manager roles.
 Recommended: Enforce 2FA as mandatory for admin roles with a grace period for initial setup.
+
+> For step-by-step WP-CLI installation, configuration, break-glass recovery, and operational verification of the `two-factor` plugin, see [WordPress Operations Runbook](https://github.com/dknauss/wordpress-runbook-template) §5.5.
 
 **Default Value:** No 2FA is configured by default.
 
@@ -1608,6 +1612,8 @@ Verify both commands report no modifications.
 1\. Run `wp core verify-checksums` and `wp plugin verify-checksums` on a scheduled basis (daily recommended).
 2\. Install a file integrity monitoring plugin or configure server-level monitoring.
 3\. Alert on any unexpected file changes in `wp-includes/`, `wp-admin/`, and plugin directories.
+
+> For AIDE installation, database initialization, automated cron scheduling, and WordPress file-change detection commands, see [WordPress Operations Runbook](https://github.com/dknauss/wordpress-runbook-template) §5.6.
 
 **Default Value:** No integrity monitoring is configured by default.
 
