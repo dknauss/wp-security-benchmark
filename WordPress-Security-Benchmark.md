@@ -1029,7 +1029,7 @@ This section addresses user authentication, session management, and role-based a
 
 **Rationale:** Compromised administrator credentials grant full control over the WordPress installation. 2FA ensures that a stolen password alone is insufficient to gain access.
 
-**Impact:** Requires a 2FA plugin. This documentation set standardizes on `wp-2fa` (Melapress) for operational consistency. Equivalent enterprise-approved alternatives may be used when requirements are met. WordPress core does not include mandatory 2FA natively.
+**Impact:** Requires a 2FA plugin. This documentation set standardizes on `two-factor` for operational consistency. Equivalent enterprise-approved alternatives may be used when requirements are met. WordPress core does not include mandatory 2FA natively.
 
 **Audit:**
 
@@ -1040,7 +1040,7 @@ This is a manual check. Verify that:
 
 **Remediation:**
 
-Install and configure `wp-2fa` (or an approved equivalent). Require 2FA enrollment for all users with Administrator, Editor, or Shop Manager roles.
+Install and configure `two-factor` (or an approved equivalent). Require 2FA enrollment for all users with Administrator, Editor, or Shop Manager roles.
 Recommended: Enforce 2FA as mandatory for admin roles with a grace period for initial setup.
 
 **Default Value:** No 2FA is configured by default.
