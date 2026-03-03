@@ -1628,7 +1628,7 @@ This is a manual check. Verify that:
 ---
 
 
-## 8.0 Supply Chain and Extension Management
+## 8 Supply Chain and Plugin Management
 
 This section addresses the security of WordPress plugins, themes, and their update processes.
 
@@ -1901,7 +1901,7 @@ This is a manual check. Verify that:
 
 ---
 
-## 11.0 AI and Generative AI Security
+## 11 AI Integration Security
 
 AI tools are increasingly integrated into WordPress workflows for content generation, chatbots, code assistance, and site management. IBM's Cost of a Data Breach Report (2025) found that 13% of organizations experienced a breach involving an AI model or application, and 97% of those breaches involved systems lacking proper access controls. This section provides controls for securing AI integrations in WordPress environments.
 
