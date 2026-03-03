@@ -94,7 +94,7 @@ SSLProtocol all -SSLv3 -TLSv1 -TLSv1.1
 ```
 Restart the web server after changes.
 
-**Default Value:** Nginx: TLSv1 TLSv1.1 TLSv1.2 (all enabled). Apache: All protocols enabled.
+**Default Value:** Nginx (1.23.4+): `TLSv1.2 TLSv1.3`. Apache 2.4: `SSLProtocol all -SSLv3` (TLSv1, TLSv1.1, TLSv1.2, and TLSv1.3 enabled; SSLv3 disabled). The remediation above explicitly disables TLSv1 and TLSv1.1 for both servers.
 
 **References:**
 
@@ -119,7 +119,7 @@ Restart the web server after changes.
 
 For Nginx, inspect the response headers:
 ```
-$ curl -sI https://example.com | grep -iE '(content-security\|x-content-type\|x-frame\|strict-transport\|referrer-policy\|permissions-policy)'
+$ curl -sI https://example.com | grep -iE '(content-security|x-content-type|x-frame|strict-transport|referrer-policy|permissions-policy)'
 ```
 Verify all six headers are present.
 
@@ -161,7 +161,6 @@ Header always set X-Frame-Options "SAMEORIGIN"
 
 - [MDN Web Docs — HTTP Security Headers](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
 - [OWASP Secure Headers Project](https://owasp.org/www-project-secure-headers/)
-OWASP Secure Headers Project
 
 ---
 
@@ -490,7 +489,7 @@ open_basedir = /var/www/example.com:/tmp:/usr/share/php
 **Audit:**
 
 ```
-$ php -i | grep -E 'session\.(cookie_secure\|cookie_httponly\|cookie_samesite\|use_strict_mode)'
+$ php -i | grep -E 'session\.(cookie_secure|cookie_httponly|cookie_samesite|use_strict_mode)'
 ```
 Verify all are set to appropriate secure values.
 
@@ -536,11 +535,11 @@ This section covers MySQL/MariaDB configuration relevant to WordPress security.
 
 **Assessment Status:** Automated
 
-**Description:** The MySQL/MariaDB user account used by WordPress should have only the privileges required for normal operation: SELECT, INSERT, UPDATE, and DELETE on the WordPress database only. The CREATE, ALTER, INDEX, and DROP privileges are not needed for routine daily operations such as publishing posts, uploading media, or managing comments.
+**Description:** The MySQL/MariaDB user account used by WordPress should be scoped to the WordPress database only and granted the minimum privileges required for normal operation and maintenance. WordPress core, plugins, themes, and updates require eight privileges: SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, and DROP. The WordPress project explicitly recommends retaining all eight to avoid failed updates and data loss. Never grant FILE, PROCESS, SUPER, GRANT OPTION, or ALL PRIVILEGES.
 
-**Rationale:** Granting excessive privileges (e.g., FILE, SUPER, GRANT) increases the impact of a SQL injection vulnerability. With minimal privileges, an attacker who achieves SQLi cannot read arbitrary files, modify grants, or perform administrative operations.
+**Rationale:** Granting excessive privileges (e.g., FILE, SUPER, GRANT) increases the impact of a SQL injection vulnerability. With minimal privileges, an attacker who achieves SQLi cannot read arbitrary files, modify grants, or perform administrative operations. Restricting the user to a single database prevents lateral movement to other databases on the same server.
 
-**Impact:** Some plugins, themes, and major WordPress updates require CREATE, ALTER, INDEX, or DROP to modify the database schema. The WordPress project explicitly recommends retaining these privileges rather than permanently revoking them: removing them can cause failed updates and data loss. Grant SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, and DROP for normal deployments. Never grant FILE, SUPER, GRANT, or ALL PRIVILEGES.
+**Impact:** Revoking CREATE, ALTER, INDEX, or DROP can break plugin activations, WordPress core updates, and database migrations. If a high-security environment requires restricting schema-modification privileges, use a two-account model: a limited account (SELECT, INSERT, UPDATE, DELETE) for runtime and a privileged account (adding CREATE, ALTER, INDEX, DROP) used only during maintenance windows. This approach requires changing `DB_USER` in `wp-config.php` before and after each update cycle and is only practical for organizations with formal change-management processes.
 
 **Audit:**
 
@@ -594,7 +593,7 @@ FLUSH PRIVILEGES;
 **Audit:**
 
 ```
-$ grep -E 'bind-address\|skip-networking' /etc/mysql/mysql.conf.d/mysqld.cnf
+$ grep -E 'bind-address|skip-networking' /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 Verify bind-address is 127.0.0.1 or ::1.
 ```
@@ -676,7 +675,7 @@ Use a short, random string. Do not use personally identifiable or guessable valu
 **Audit:**
 
 ```
-$ grep -E '(general_log\|slow_query_log)' /etc/mysql/mysql.conf.d/mysqld.cnf
+$ grep -E '(general_log|slow_query_log)' /etc/mysql/mysql.conf.d/mysqld.cnf
 ```
 Verify at minimum slow_query_log is enabled.
 
@@ -804,7 +803,7 @@ Add to `wp-config.php`:
 **Audit:**
 
 ```
-$ grep -E 'WP_DEBUG\|WP_DEBUG_DISPLAY\|WP_DEBUG_LOG' /path/to/wp-config.php
+$ grep -E 'WP_DEBUG|WP_DEBUG_DISPLAY|WP_DEBUG_LOG' /path/to/wp-config.php
 ```
 Verify `WP_DEBUG` and `WP_DEBUG_DISPLAY` are `false`.
 If `WP_DEBUG_LOG` is enabled, verify the log path is outside the web root or blocked by the web server.
@@ -930,7 +929,7 @@ Optionally, explicitly enable minor updates:
 **Audit:**
 
 ```
-$ grep -E '(AUTH_KEY\|SECURE_AUTH_KEY\|LOGGED_IN_KEY\|NONCE_KEY\|AUTH_SALT\|SECURE_AUTH_SALT\|LOGGED_IN_SALT\|NONCE_SALT)' /path/to/wp-config.php
+$ grep -E '(AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT)' /path/to/wp-config.php
 ```
 Verify all eight constants are defined with long, unique random strings. None should be 'put your unique phrase here' (the placeholder value).
 
@@ -972,8 +971,14 @@ Verify: `define( 'DISABLE_WP_CRON', true );`
 
 Verify a system cron job is configured:
 ```
-$ crontab -l | grep wp-cron
+$ crontab -l | grep -E 'wp.cron'
 ```
+Verify the entry uses `wp cron event run --due-now` (WP-CLI), not `curl` to `wp-cron.php`.
+Verify `wp-cron.php` is blocked at the web server level:
+```
+$ curl -s -o /dev/null -w '%{http_code}' https://example.com/wp-cron.php
+```
+A 403 response confirms the endpoint is blocked.
 
 **Remediation:**
 
@@ -1850,7 +1855,7 @@ For Cloud WAF:
 **References:**
 
 - [OWASP ModSecurity Core Rule Set](https://coreruleset.org/)
-https://github.com/coreruleset/wordpress-rule-exclusions-plugin
+- [WordPress Rule Exclusions Plugin for OWASP CRS](https://github.com/coreruleset/wordpress-rule-exclusions-plugin)
 
 ---
 
