@@ -29,7 +29,9 @@ The guidance draws on many WordPress security resources and standards, such as t
 
 **Note on Containerization:** While this benchmark assumes a traditional Linux stack, the principles and many of the configuration settings apply equally to containerized environments (Docker, Kubernetes). In such cases, configurations should be injected via environment variables or secret management systems rather than direct file edits where possible.
 
----
+```{=latex}
+\newpage
+```
 
 ## Profile Definitions
 
