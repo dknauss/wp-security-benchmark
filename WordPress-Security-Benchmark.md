@@ -80,7 +80,7 @@ For Apache:
 ```
 $ grep -r 'SSLProtocol' /etc/apache2/
 ```
-Verify the output shows 'all -SSLv3 -TLSv1 -TLSv1.1' or equivalent.
+Verify the output shows `all -SSLv3 -TLSv1 -TLSv1.1` or equivalent.
 
 **Remediation:**
 
@@ -331,7 +331,7 @@ This section provides recommendations for securing the PHP runtime environment.
 ```
 $ php -i | grep expose_php
 ```
-Verify the output shows 'expose_php => Off => Off'.
+Verify the output shows `expose_php => Off => Off`.
 
 **Remediation:**
 
@@ -369,7 +369,7 @@ Restart PHP-FPM or the web server.
 ```
 $ php -i | grep display_errors
 ```
-Verify: 'display_errors => Off => Off'.
+Verify: `display_errors => Off => Off`.
 
 **Remediation:**
 
@@ -639,7 +639,7 @@ Inspect `wp-config.php`:
 ```
 $ grep 'table_prefix' /path/to/wp-config.php
 ```
-Verify the value is not 'wp_'.
+Verify the value is not `wp_`.
 
 **Remediation:**
 
@@ -649,7 +649,7 @@ $table_prefix = 'wxyz_';
 ```
 Use a short, random string. Do not use personally identifiable or guessable values.
 
-**Default Value:** $table_prefix = 'wp_';
+**Default Value:** `$table_prefix = 'wp_';`
 
 
 **References:**
