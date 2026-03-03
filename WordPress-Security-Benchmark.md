@@ -1829,9 +1829,9 @@ This section addresses the deployment and configuration of a Web Application Fir
 
 **Assessment Status:** Manual
 
-**Description:** Deploy a Web Application Firewall (WAF). This can be a server-level solution like **ModSecurity** with the OWASP Core Rule Set (CRS), or a cloud-based solution such as **Cloudflare WAF**, **Akamai**, or **Sucuri**.
+**Description:** Deploy a Web Application Firewall (WAF). This can be a server-level solution such as **ModSecurity** or **Coraza** with the OWASP Core Rule Set (CRS), or a cloud-based solution such as **Cloudflare WAF**, **Akamai**, or **Sucuri**.
 
-**Rationale:** A WAF provides immediate protection against common web attacks (SQLi, XSS, RCE) before they reach the application. For server-level WAFs like ModSecurity, WordPress-specific exclusion rules are necessary to allow legitimate functionality (like post saving and media uploads) to pass through without being blocked as false positives. Cloud WAFs typically manage these rulesets automatically.
+**Rationale:** A WAF provides immediate protection against common web attacks (SQLi, XSS, RCE) before they reach the application. For server-level WAFs (for example, ModSecurity or Coraza), WordPress-specific exclusion rules are necessary to allow legitimate functionality (like post saving and media uploads) to pass through without being blocked as false positives. Cloud WAFs typically manage these rulesets automatically.
 
 **Impact:** WAFs can introduce latency and false positives. Tuning is required. Cloud WAFs may require DNS changes.
 
@@ -1839,13 +1839,13 @@ This section addresses the deployment and configuration of a Web Application Fir
 
 This is a manual check. Verify that:
 1. A WAF is active and blocking malicious requests (verify via logs or simulation).
-2. If using ModSecurity, the OWASP Core Rule Set and WordPress Rule Exclusions are enabled.
+2. If using a server-level WAF, the OWASP Core Rule Set and WordPress Rule Exclusions are enabled.
 3. If using a Cloud WAF, the WordPress-specific protection profile is active.
 
 **Remediation:**
 
 For server-level WAF:
-1. Install ModSecurity and the OWASP Core Rule Set.
+1. Install ModSecurity or Coraza with the OWASP Core Rule Set.
 2. Enable the WordPress exclusion rule set.
    - For OWASP CRS v3.x: Uncomment the WordPress exclusion rule in `crs-setup.conf`.
    - For OWASP CRS v4.x: Use the [WordPress Rule Exclusions Plugin](https://github.com/coreruleset/wordpress-rule-exclusions-plugin).
@@ -2190,12 +2190,12 @@ Verify each pool configuration specifies a unique user.
 ```
 $ sudo useradd -r -s /usr/sbin/nologin site1_user
 ```
-2. Configure a dedicated PHP-FPM pool for each site in `/etc/php/8.3/fpm/pool.d/site1.conf`:
+2. Configure a dedicated PHP-FPM pool for each site in `/etc/php/[CUSTOMIZE: 8.x]/fpm/pool.d/site1.conf`:
 ```ini
 [site1]
 user = site1_user
 group = site1_user
-listen = /run/php/php8.3-fpm-site1.sock
+listen = /run/php/php[CUSTOMIZE: 8.x]-fpm-site1.sock
 listen.owner = www-data
 listen.group = www-data
 ```
