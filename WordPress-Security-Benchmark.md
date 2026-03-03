@@ -1218,7 +1218,7 @@ Block author archive enumeration at the web server level or with a plugin.
 
 **Description:** WordPress should require reauthentication (sudo mode) before performing sensitive administrative actions. An "action-gated" model should be adopted to challenge users for their password (and 2FA) when they attempt destructive or high-risk operations. This can be achieved with [Fortress](https://github.com/snicco/fortress) or [wp-sudo](https://github.com/dknauss/wp-sudo) (disclosure: maintained by this document's editor). 
 
-**Rationale:** If a session is hijacked, reauthentication limits the damage the attacker can do with the stolen session. Gating critical operations ensures that even with a stolen browser cookie, the attacker cannot perform permanent or high-impact changes without knowing the user's password.
+**Rationale:** If a session is hijacked, reauthentication limits the damage the attacker can do with the stolen session. Gating critical operations ensures that even with a stolen browser cookie, the attacker cannot perform permanent or high-impact changes without knowing the user's password. See the [WordPress Security Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide) §8.2 for the enterprise architecture rationale and the full list of recommended gated actions.
 
 **Impact:** Requires a dedicated security solution (e.g., Fortress by Snicco). WordPress core does not natively enforce reauthentication for most admin actions.
 
@@ -1781,6 +1781,8 @@ Verify no security updates are pending.
 2\. Subscribe to vulnerability notification services (Patchstack, WPScan, Wordfence). Use the Exploit Prediction Scoring System (EPSS) alongside CVSS to prioritize remediation by real-world exploitability.
 3\. Establish a maintenance schedule for manual update review (weekly minimum).
 4\. Deploy virtual patching for critical vulnerabilities that cannot be patched immediately.
+
+> For the complete update procedure with staging verification, rollback steps, and escalation criteria, see [WordPress Operations Runbook](https://github.com/dknauss/wordpress-runbook-template) §6.3.
 
 **Default Value:** Plugin and theme auto-updates are disabled by default (can be enabled per-plugin).
 
