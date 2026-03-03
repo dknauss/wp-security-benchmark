@@ -861,7 +861,6 @@ For Nginx:
 ```nginx
 location = /xmlrpc.php {
   deny all;
-  return 403;
 }
 ```
 Or disable via a must-use plugin:
@@ -999,7 +998,6 @@ A 403 response confirms the endpoint is blocked.
 ```nginx
 location = /wp-cron.php {
     deny all;
-    return 403;
 }
 ```
 This is safe because `wp-cli` executes PHP directly and does not use HTTP.
