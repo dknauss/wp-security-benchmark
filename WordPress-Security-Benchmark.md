@@ -1198,7 +1198,7 @@ Block author archive enumeration at the web server level or with a plugin.
 
 **Assessment Status:** Manual
 
-**Description:** WordPress should require reauthentication (sudo mode) before performing sensitive administrative actions. An "action-gated" model should be adopted to challenge users for their password (and 2FA) when they attempt destructive or high-risk operations.
+**Description:** WordPress should require reauthentication (sudo mode) before performing sensitive administrative actions. An "action-gated" model should be adopted to challenge users for their password (and 2FA) when they attempt destructive or high-risk operations. This can be achieved with [wp-sudo](https://github.com/dknauss/wp-sudo) or [Fortress](https://github.com/snicco/fortress). 
 
 **Rationale:** If a session is hijacked, reauthentication limits the damage the attacker can do with the stolen session. Gating critical operations ensures that even with a stolen browser cookie, the attacker cannot perform permanent or high-impact changes without knowing the user's password.
 
@@ -1224,6 +1224,7 @@ Implement an action-gated reauthentication solution. Configure the "Action Regis
 
 - [OWASP Authentication Cheat Sheet — Reauthentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
 - [NIST SP 800-63B — Reauthentication](https://pages.nist.gov/800-63-4/sp800-63b.html)
+- [Fortress sudo mode documentation](https://github.com/snicco/fortress/blob/beta/docs/modules/session/sudo-mode.md) (Snicco)
 
 ---
 
