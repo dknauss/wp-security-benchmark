@@ -224,7 +224,7 @@ ServerSignature Off
 
 For Nginx, verify a location block exists for uploads:
 ```
-$ grep -A5 'uploads' /etc/nginx/sites-enabled/\*
+$ grep -A5 'uploads' /etc/nginx/sites-enabled/*
 ```
 Verify that PHP processing is denied for the uploads directory.
 
@@ -482,7 +482,7 @@ open_basedir = /var/www/example.com:/tmp:/usr/share/php
 
 **Description:** PHP session configuration should enforce secure defaults: cookies marked Secure, HttpOnly, and SameSite=Lax or Strict. Session ID entropy and hashing should use strong algorithms.
 
-**Rationale:** Secure session configuration prevents session fixation, cookie theft via XSS, and cross-site request forgery via session cookies.
+**Rationale:** Secure session configuration prevents session fixation, cookie theft via XSS, and cross-site request forgery via session cookies. Note: WordPress core does not use PHP native sessions (`$_SESSION`) — it implements its own authentication via cookies and database-stored session tokens. These PHP session settings are defense-in-depth for plugins that call `session_start()`.
 
 **Impact:** Users must connect via HTTPS to maintain a session. Legacy applications or intra-server tools attempting to access sessions over HTTP will be unable to maintain state.
 
@@ -864,9 +864,9 @@ location = /xmlrpc.php {
   return 403;
 }
 ```
-Or disable via `wp-config.php`:
+Or disable via a must-use plugin:
 `add_filter( 'xmlrpc_enabled', '__return_false' );`
-(Place in a must-use plugin, not `wp-config.php` directly.)
+(Place in `wp-content/mu-plugins/`, not `wp-config.php`.)
 
 Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by unchecking "Allow link notifications from other blogs (pingbacks and trackbacks) on new posts." Trackbacks operate independently of `xmlrpc.php` and should be disabled separately.
 
@@ -1262,8 +1262,10 @@ Verify public user enumeration is blocked or minimized per site policy.
 Example (must-use plugin) to block unauthenticated users endpoints:
 ```php
 add_filter( 'rest_endpoints', function( $endpoints ) {
-    unset( $endpoints['/wp/v2/users'] );
-    unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+    if ( ! current_user_can( 'list_users' ) ) {
+        unset( $endpoints['/wp/v2/users'] );
+        unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+    }
     return $endpoints;
 } );
 ```
@@ -2302,7 +2304,7 @@ The following table summarizes all recommendations in this benchmark.
 
 | **ID** | **Recommendation**                                  | **Level** | **Assessment** |
 | :--- | :-------------------------------------------------- | :-------- | :------------- |
-| 1.1  | Ensure TLS 1.2+ is enforced                         | L1        | Automated      |
+| 1.1  | Ensure TLS 1.2+ is enforced                         | L2        | Automated      |
 | 1.2  | Ensure HTTP security headers are configured         | L1        | Automated      |
 | 1.3  | Ensure server tokens and version info are hidden    | L1        | Automated      |
 | 1.4  | Ensure PHP execution is blocked in uploads          | L1        | Automated      |
@@ -2382,6 +2384,7 @@ When documenting Argon2 support, refer to the `wp_hash_password_algorithm` filte
 
 -   **[WordPress Security Architecture and Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide)** — Enterprise-focused security architecture and hardening guide covering threat landscape, OWASP Top 10 coverage, server hardening, authentication, supply chain, incident response, and AI security. This benchmark's technical controls complement the Hardening Guide's broader strategic guidance.
 -   **[WordPress Security Style Guide](https://github.com/dknauss/wp-security-style-guide)** — Principles, terminology, and formatting conventions for writing about WordPress security.
+-   **[WordPress Operations Runbook](https://github.com/dknauss/wordpress-runbook-template)** — Operational procedures template for WordPress sysadmins and SREs, covering deployment, maintenance, backup, incident response, and disaster recovery.
 -   **[WordPress Advanced Administration: Security](https://developer.wordpress.org/advanced-administration/security/)** — The official WordPress documentation for WordPress security, covering hardening, brute-force protection, HTTPS, backups, monitoring, and multi-factor authentication.
 -   **[WordPress Security White Paper](https://wordpress.org/about/security/)** — The official upstream document describing WordPress core security architecture, maintained at WordPress.org.
 
