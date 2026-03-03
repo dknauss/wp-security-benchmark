@@ -1029,7 +1029,7 @@ This section addresses user authentication, session management, and role-based a
 
 **Rationale:** Compromised administrator credentials grant full control over the WordPress installation. 2FA ensures that a stolen password alone is insufficient to gain access.
 
-**Impact:** Requires a 2FA plugin (e.g., Two Factor, Wordfence, WP 2FA, or Fortress). WordPress core does not include 2FA natively as of version 6.9.
+**Impact:** Requires a 2FA plugin. This documentation set standardizes on `wp-2fa` (Melapress) for operational consistency. Equivalent enterprise-approved alternatives may be used when requirements are met. WordPress core does not include mandatory 2FA natively.
 
 **Audit:**
 
@@ -1040,7 +1040,7 @@ This is a manual check. Verify that:
 
 **Remediation:**
 
-Install and configure a 2FA plugin. Require 2FA enrollment for all users with Administrator, Editor, or Shop Manager roles.
+Install and configure `wp-2fa` (or an approved equivalent). Require 2FA enrollment for all users with Administrator, Editor, or Shop Manager roles.
 Recommended: Enforce 2FA as mandatory for admin roles with a grace period for initial setup.
 
 **Default Value:** No 2FA is configured by default.
@@ -1860,7 +1860,7 @@ For Cloud WAF:
 
 **References:**
 
-- [OWASP ModSecurity Core Rule Set](https://coreruleset.org/)
+- [OWASP Core Rule Set (CRS)](https://coreruleset.org/)
 - [WordPress Rule Exclusions Plugin for OWASP CRS](https://github.com/coreruleset/wordpress-rule-exclusions-plugin)
 
 ---
@@ -2375,12 +2375,6 @@ The following symbols should **not** be used in benchmark remediation snippets:
 - `define( 'XMLRPC_REQUEST', false );` (`XMLRPC_REQUEST` is a request-context constant, not a config toggle)
 
 When documenting Argon2 support, refer to the `wp_hash_password_algorithm` filter.
-
-Suggested CI/QA guardrail (documentation lint):
-
-```bash
-rg -n "FORCE_SSL_LOGIN|DISALLOW_PLUGIN_EDITING|DISALLOW_PLUGIN_ACTIVATION|SECURE_LOGGED_IN_COOKIE|define\s*\(\s*'XMLRPC_REQUEST'\s*,\s*false\s*\)|wp_hash_password\s+filter" WordPress-Security-Benchmark.md
-```
 
 ## Related Documents
 
