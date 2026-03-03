@@ -1913,7 +1913,7 @@ AI tools are increasingly integrated into WordPress workflows for content genera
 
 **Description:** API keys and credentials for AI/LLM services (OpenAI, Anthropic, Google, etc.) must be stored securely and never exposed in client-side code, version control, or the WordPress database.
 
-**Rationale:** AI API keys grant access to paid services and may allow data exfiltration or abuse. The Verizon DBIR (2025) found that leaked secrets in code repositories had a median remediation time of 94 days, with 66% being JSON Web Tokens. AI API keys are similarly at risk.
+**Rationale:** AI API keys grant access to paid services and may allow data exfiltration or abuse. The Verizon DBIR (2025) found that leaked secrets in code repositories had a median remediation time of 94 days, with 66% being JSON Web Tokens. AI API keys are similarly at risk. The IBM X-Force 2026 Threat Intelligence Index reports that stolen credentials for AI chatbot platforms are now appearing in underground marketplaces, driven largely by infostealer infections — making secure storage and rotation of AI API keys an operational priority, not just a best practice.
 
 **Impact:** Requires using `wp-config.php` constants or environment variables rather than storing keys in plugin settings (database).
 
