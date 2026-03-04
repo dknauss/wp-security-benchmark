@@ -9,11 +9,9 @@ version: "1.0"
 
 ## Overview
 
-This document provides prescriptive guidance for establishing a secure configuration posture for WordPress 6.x running on a Linux server stack. This benchmark covers the full stack: the operating system firewall, web server (Nginx or Apache), PHP runtime, MySQL/MariaDB database, and the WordPress application layer.
+The _WordPress Security Benchmark_ provides prescriptive guidance for establishing a secure configuration posture for WordPress 6.x running on a Linux server stack. It covers the full stack: the operating system firewall, web server (Nginx or Apache), PHP runtime, MySQL/MariaDB database, and the WordPress application layer.
 
-This benchmark is intended for system administrators, security engineers, DevOps teams, and WordPress developers responsible for deploying and maintaining WordPress installations in enterprise environments.
-
-The guidance draws on many WordPress security resources and standards, such as the OWASP Top 10 (2025), NIST SP 800-63B, and field experience with enterprise WordPress hardening.
+The Benchmark is intended for system administrators, security engineers, DevOps teams, and WordPress developers responsible for deploying and maintaining WordPress installations in enterprise environments. It draws on many WordPress, LEMP/LAMP, and related security resources and standards (e.g., OWASP and NIST), as well as field experience with enterprise WordPress hardening.
 
 ## Target Technology
 
@@ -113,7 +111,7 @@ Restart the web server after changes.
 
 **Rationale:** HTTP security headers instruct the browser to enable built-in protections against common attacks such as XSS, clickjacking, MIME-type confusion, and insecure referrer leakage.
 
-**Impact:** Overly restrictive Content-Security-Policy headers may break inline scripts, third-party integrations, or analytics tools. Note that `unsafe-inline` is often required for WordPress themes and plugins but represents a security trade-off. For Level 2, aim to remove `unsafe-inline` by using nonces or hashes.
+**Impact:** Overly restrictive Content-Security-Policy headers may break inline scripts, third-party integrations, or analytics tools. Note that `unsafe-inline` is often required for WordPress themes and plugins, but it represents a security trade-off. For Level 2, aim to remove `unsafe-inline` by using nonces or hashes.
 
 **Audit:**
 
