@@ -31,7 +31,7 @@ The guidance draws on many WordPress security resources and standards, such as t
 
 ```{=latex}
 \newpage
-```bash
+```
 
 ## Profile Definitions
 
@@ -51,7 +51,7 @@ This benchmark defines two configuration profiles:
 
 ```{=latex}
 \newpage
-```bash
+```
 
 ## 1.0 Web Server Configuration
 
@@ -128,23 +128,23 @@ Verify all six headers are present.
 For Nginx, add to the server block:
 ```
 add_header X-Content-Type-Options "nosniff" always;
-```bash
+```
 
 ```
 add_header X-Frame-Options "SAMEORIGIN" always;
-```bash
+```
 
 ```
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-```bash
+```
 
 ```
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-```bash
+```
 
 ```
 add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
-```bash
+```
 
 ```
 add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" always;
@@ -153,7 +153,7 @@ For Apache, use the Headers module:
 ```apache
 Header always set X-Content-Type-Options "nosniff"
 Header always set X-Frame-Options "SAMEORIGIN"
-```bash
+```
 
 **Default Value:** No security headers are set by default.
 
@@ -194,7 +194,7 @@ For Apache:
 ```apache
 ServerTokens Prod
 ServerSignature Off
-```bash
+```
 
 **Default Value:** Nginx: server_tokens on (version exposed). Apache: ServerTokens Full.
 
@@ -241,7 +241,7 @@ For Apache, create wp-content/uploads/.htaccess:
 <FilesMatch "\.php$">
   Require all denied
 </FilesMatch>
-```bash
+```
 
 **Default Value:** PHP execution is allowed in all directories by default.
 
@@ -296,7 +296,7 @@ location ~ ^/wp-json/ {
     limit_req zone=wpapi burst=10 nodelay;
     # ... PHP processing ...
 }
-```bash
+```
 
 **Default Value:** No rate limiting is configured by default.
 
@@ -376,15 +376,15 @@ Verify: `display_errors => Off => Off`.
 In php.ini:
 ```
 display_errors = Off
-```bash
+```
 
 ```
 log_errors = On
-```bash
+```
 
 ```
 error_log = /var/log/php/error.log
-```bash
+```
 
 **Default Value:** display_errors = On in development configurations.
 
@@ -424,7 +424,7 @@ Verify the output includes dangerous functions.
 In php.ini:
 ```
 disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_exec,parse_ini_file,show_source,pcntl_exec
-```bash
+```
 
 **Default Value:** No functions are disabled by default.
 
@@ -461,7 +461,7 @@ Verify a restricted path is configured.
 In the PHP-FPM pool configuration or php.ini:
 ```
 open_basedir = /var/www/example.com:/tmp:/usr/share/php
-```bash
+```
 
 **Default Value:** open_basedir is not set (unrestricted).
 
@@ -498,23 +498,23 @@ Verify all are set to appropriate secure values.
 In php.ini:
 ```
 session.cookie_secure = 1
-```bash
+```
 
 ```
 session.cookie_httponly = 1
-```bash
+```
 
 ```
 session.cookie_samesite = Lax
-```bash
+```
 
 ```
 session.use_strict_mode = 1
-```bash
+```
 
 ```
 session.use_only_cookies = 1
-```bash
+```
 
 **Default Value:** session.cookie_secure = 0, session.cookie_httponly = 0 (insecure defaults).
 
@@ -546,7 +546,7 @@ This section covers MySQL/MariaDB configuration relevant to WordPress security.
 Run as the MySQL root user:
 ```sql
 SELECT user, host FROM mysql.user;
-```bash
+```
 
 ```sql
 SHOW GRANTS FOR 'wp_user'@'localhost';
@@ -557,15 +557,15 @@ Verify the user has privileges only on the WordPress database and only the requi
 
 ```sql
 REVOKE ALL PRIVILEGES ON *.* FROM 'wp_user'@'localhost';
-```bash
+```
 
 ```sql
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP ON wp_database.* TO 'wp_user'@'localhost';
-```bash
+```
 
 ```sql
 FLUSH PRIVILEGES;
-```bash
+```
 
 **Default Value:** Depends on initial setup. Many installation guides grant ALL PRIVILEGES.
 
@@ -646,7 +646,7 @@ Record whether the installation uses the default `wp_` prefix and ensure the cho
 Keep the default prefix unless your environment has a documented policy requiring customization. If customization is required, set it only during initial provisioning and test plugin compatibility:
 ```
 $table_prefix = 'wxyz_';
-```bash
+```
 
 **Default Value:** `$table_prefix = 'wp_';`
 
@@ -683,11 +683,11 @@ Verify at minimum slow_query_log is enabled.
 In mysqld.cnf under [mysqld]:
 ```
 slow_query_log = 1
-```bash
+```
 
 ```
 slow_query_log_file = /var/log/mysql/mysql-slow.log
-```bash
+```
 
 ```
 long_query_time = 2
@@ -695,11 +695,11 @@ long_query_time = 2
 For investigations, temporarily enable:
 ```
 general_log = 1
-```bash
+```
 
 ```
 general_log_file = /var/log/mysql/mysql-general.log
-```bash
+```
 
 **Default Value:** Both logs are disabled by default.
 
@@ -904,7 +904,7 @@ Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by
 
 ```
 $ wp config get WP_AUTO_UPDATE_CORE --path=/path/to/wordpress 2>/dev/null
-```bash
+```
 
 ```
 $ grep 'WP_AUTO_UPDATE_CORE\|AUTOMATIC_UPDATER_DISABLED' /path/to/wp-config.php
@@ -1008,7 +1008,7 @@ define( 'DISABLE_WP_CRON', true );
 2. Add a system cron job (runs every 5 minutes) using WP-CLI:
 ```
 */5 * * * * cd /path/to/wordpress && wp cron event run --due-now > /dev/null 2>&1
-```bash
+```
 
 3. Block direct external access to `wp-cron.php` at the web server level (Nginx):
 ```nginx
@@ -1147,7 +1147,7 @@ add_filter( 'auth_cookie_expiration', function( $expiration, $user_id, $remember
   
   return 24 * HOUR_IN_SECONDS; // 24 hours for others
 }, 10, 3 );
-```bash
+```
 
 **Default Value:** 48 hours (2 days) without 'Remember Me'; 14 days with 'Remember Me'.
 
@@ -1286,7 +1286,7 @@ add_filter( 'rest_endpoints', function( $endpoints ) {
     }
     return $endpoints;
 } );
-```bash
+```
 
 **Default Value:** Public REST endpoints are available by default.
 
@@ -1377,7 +1377,7 @@ add_action( 'init', function() {
         ));
     }
 });
-```bash
+```
 
 **Default Value:** Roles are stored in the `wp_options` table and editable via plugins or direct database access.
 
@@ -1417,11 +1417,11 @@ Example ownership checks:
 
 ```
 $ stat -c '%U:%G' /path/to/wordpress/wp-config.php
-```bash
+```
 
 ```
 $ stat -c '%U:%G' /path/to/wordpress/wp-includes/version.php
-```bash
+```
 
 **Remediation:**
 
@@ -1432,7 +1432,7 @@ sudo chown -R wp_user:www-data /path/to/wordpress/
 sudo find /path/to/wordpress/ -type d -exec chmod 750 {} \;
 sudo find /path/to/wordpress/ -type f -exec chmod 640 {} \;
 sudo chmod 400 /path/to/wordpress/wp-config.php
-```bash
+```
 
 **Model B (shared/managed hosting constraints):**
 
@@ -1477,11 +1477,11 @@ Verify permissions are 400 or 440 (600 or 640 are acceptable minimums where writ
 
 ```bash
 chmod 400 /path/to/wordpress/wp-config.php
-```bash
+```
 
 ```bash
 chown wp_user:wp_user /path/to/wordpress/wp-config.php
-```bash
+```
 
 **Default Value:** 644 (world-readable) in many default configurations.
 
@@ -1515,7 +1515,7 @@ $ ls -la /var/www/example.com/wp-config.php
 If the file exists in the document root, it should be moved. Verify WordPress functions correctly after the move:
 ```
 $ curl -sI https://example.com/ | head -5
-```bash
+```
 
 **Remediation:**
 
@@ -1528,7 +1528,7 @@ WordPress will automatically detect and load `wp-config.php` from the parent dir
 Verify the parent directory is not publicly accessible and has restrictive permissions:
 ```
 $ chmod 750 /var/www/
-```bash
+```
 
 **Default Value:** `wp-config.php` is placed in the WordPress installation root (typically the document root) by default.
 
@@ -1684,7 +1684,7 @@ This section addresses the security of pluggable WordPress components known as p
 
 ```
 $ wp plugin list --status=inactive --fields=name,version --path=/path/to/wordpress
-```bash
+```
 
 ```
 $ wp theme list --status=inactive --fields=name,version --path=/path/to/wordpress
@@ -1695,7 +1695,7 @@ Verify no unused plugins or themes are present (one default/fallback theme is ac
 
 ```bash
 $ wp plugin delete <plugin-name> --path=/path/to/wordpress
-```bash
+```
 
 ```bash
 $ wp theme delete <theme-name> --path=/path/to/wordpress
@@ -1768,7 +1768,7 @@ Verify each plugin is available in the WordPress.org repository or from a known 
 
 ```
 $ wp plugin list --fields=name,version,update --path=/path/to/wordpress
-```bash
+```
 
 ```
 $ wp theme list --fields=name,version,update --path=/path/to/wordpress
@@ -1815,7 +1815,7 @@ This is a manual check. Verify that:
 **Remediation:**
 
 1. Generate an SBOM using WP-CLI and system commands:
-```bash
+```
 # Core version
 wp core version --path=/path/to/wordpress
 
@@ -2086,7 +2086,7 @@ PermitRootLogin no
 Restart the SSH service:
 ```
 $ sudo systemctl restart sshd
-```bash
+```
 
 **Default Value:** Password authentication is enabled by default on most Linux distributions.
 
@@ -2166,7 +2166,7 @@ Verify the firewall is active and only the required ports are open.
 **Remediation:**
 
 For UFW on Ubuntu/Debian:
-```bash
+```
 # Enable UFW
 sudo ufw default deny incoming
 sudo ufw default allow outgoing
@@ -2178,7 +2178,7 @@ sudo ufw allow <custom-ssh-port>/tcp
 
 # Enable the firewall
 sudo ufw enable
-```bash
+```
 
 **Default Value:** UFW is installed but inactive on Ubuntu. No firewall is configured by default on most distributions.
 
