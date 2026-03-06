@@ -1631,7 +1631,7 @@ Verify both commands report no modifications.
 
 **Description:** A server-level malware detection solution should be deployed to scan the WordPress file system for known malicious patterns, web shells, backdoors, and unauthorized modifications beyond what WordPress-level integrity checks can detect.
 
-**Rationale:** WordPress-level file integrity checks (7.2) compare files against known-good checksums but cannot detect malware injected into non-core files, uploaded web shells, or obfuscated payloads in legitimate-looking files. Server-level scanning tools use signature databases and heuristic analysis that cover a broader threat surface.
+**Rationale:** Application-level file integrity checks (7.2) compare files against known-good checksums but cannot detect malware injected into non-core files, uploaded web shells, or obfuscated payloads in legitimate-looking files. As well, all application-level security tools, including malware scanning provided by third-party plugins, are unreliable in an actual breach scenario, since their code executes within the compromised environment. Malware is often designed to defeat application-level scanners. Network and server-level scanning tools can reliably use signature databases and heuristic analysis that cover a broader threat surface from a secure position if the application environment is breached.
 
 **Impact:** Scanning may consume server resources. Schedule intensive scans during low-traffic periods. Real-time monitoring (where available) adds minimal overhead.
 
@@ -1658,6 +1658,7 @@ This is a manual check. Verify that:
 
 - [ClamAV Documentation](https://docs.clamav.net/)
 - [WordPress Hardening](https://developer.wordpress.org/advanced-administration/security/hardening/)
+- [Snicco series on WordPress plugin-based malware scanners](https://github.com/dknauss/ai-assisted-docs) 
 
 ---
 
