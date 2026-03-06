@@ -1304,7 +1304,7 @@ add_filter( 'rest_endpoints', function( $endpoints ) {
 
 **Assessment Status:** Manual
 
-**Description:** Configure WordPress to enforce a strong password policy that follows current OWASP recommendations: minimum length of 12 characters, checking against breached password/dictionary lists, and avoiding arbitrary complexity rules that lead to predictable patterns.
+**Description:** Configure WordPress to enforce a strong password policy that follows current OWASP and NIST recommendations: minimum length of 15 characters if MFA is not enabled, check against breached password/dictionary lists, and avoid arbitrary complexity rules that lead to predictable patterns.
 
 **Rationale:** Weak passwords are a primary vector for account takeover. Modern standards (NIST SP 800-63B and OWASP) emphasize length and entropy over complexity (e.g., forcing special characters), and mandate checking against known compromised credentials.
 
@@ -1317,12 +1317,12 @@ add_filter( 'rest_endpoints', function( $endpoints ) {
 This is a manual check. Verify that:
 1\. A password enforcement mechanism is active.
 2\. Test by attempting to set a simple 8-character password; verify it is rejected.
-3\. Verify the policy requires at least 12 characters.
+3\. Verify the policy requires at least 15 characters.
 
 **Remediation:**
 
 1\. Install a security plugin that supports password policy enforcement.
-2\. Configure the policy to require a minimum of 12 characters.
+2\. Configure the policy to require a minimum of 15 characters.
 3\. Enable "pwned password" checks to block credentials found in previous data breaches.
 4\. Remove legacy requirements for symbols or numbers if they interfere with user-generated passphrases.
 
@@ -1331,7 +1331,7 @@ This is a manual check. Verify that:
 **References:**
 
 - [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
-- [NIST SP 800-63B](https://pages.nist.gov/800-63-4/sp800-63b.html)
+- [NIST SP 800-63B](https://pages.nist.gov/800-63-4/sp800-63b.html), §[3.1.1.2](https://pages.nist.gov/800-63-4/sp800-63b/authenticators/#passwordver), and [Appendix A](https://pages.nist.gov/800-63-4/sp800-63b/passwords/)
 
 ---
 
