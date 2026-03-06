@@ -1342,7 +1342,7 @@ This is a manual check. Verify that:
 
 **Assessment Status:** Manual
 
-**Description:** User roles and custom capabilities should be defined in code (via a must-use plugin) rather than relying solely on database-stored role definitions. The WordPress roles API (`WP_Roles`, `add_role()`, `add_cap()`) is initialized on the `init` hook, after `wp-config.php` is loaded, so roles cannot be defined in `wp-config.php`. This ensures role definitions are version-controlled, auditable, and resistant to tampering.
+**Description:** User roles and custom capabilities should be defined in code (via a must-use plugin) rather than relying solely on database-stored role definitions. The `init` hook is the recommended place to call `add_role()` or `add_cap()`. This file-based approach ensures role definitions are version-controlled, auditable, and resistant to tampering.
 
 **Rationale:** Role and capability definitions stored only in the database can be modified by an attacker who achieves SQL injection or gains admin access. Defining roles in code makes privilege escalation via database manipulation significantly harder and ensures role definitions can be reviewed in version control.
 
