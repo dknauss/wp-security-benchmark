@@ -1576,7 +1576,6 @@ Export logs to a centralized SIEM for correlation (Level 2).
 
 - [OWASP Logging Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html)
 - [`wp_login` Hook](https://developer.wordpress.org/reference/hooks/wp_login/)
-- [WordPress VIP Audit Log](https://docs.wpvip.com/logs/audit-log/)
 
 ---
 
@@ -1978,6 +1977,9 @@ wp db query "SELECT option_name, option_value FROM wp_options WHERE option_value
 **References:**
 
 - [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
+- Felix Arntz: [Storing Confidential Data in WordPress](https://felix-arntz.me/blog/storing-confidential-data-in-wordpress/)
+- Pantheon: [Secrets Management in WordPress](https://docs.pantheon.io/guides/wordpress-developer/wordpress-secrets-management)
+- Snicco: [Vaults and Pillars](https://github.com/snicco/fortress/blob/beta/docs/modules/vaults_and_pillars/wordpress_options.md)
 - [WordPress VIP Environment Variables](https://docs.wpvip.com/infrastructure/environments/manage-environment-variables/)
 - [WordPress VIP `vip-config.php`](https://docs.wpvip.com/wordpress-skeleton/vip-config-directory/)
 
