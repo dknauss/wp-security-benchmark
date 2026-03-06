@@ -25,7 +25,7 @@ The Benchmark is intended for system administrators, security engineers, DevOps 
 
 -   MySQL 8.0+ or MariaDB 10.6+
 
-**Note on Containerization:** While this benchmark assumes a traditional Linux stack, the principles and many of the configuration settings apply equally to containerized environments (Docker, Kubernetes). In such cases, configurations should be injected via environment variables or secret management systems rather than direct file edits where possible.
+**Note on Containerization:** While this benchmark assumes a traditional Linux stack, the principles and many of the configuration settings apply equally to containerized environments ([Docker](https://hub.docker.com/_/wordpress), [Kubernetes](https://kubernetes.io/docs/tutorials/stateful-application/mysql-wordpress-persistent-volume/)). In such cases, configurations should be injected via environment variables or secret management systems rather than direct file edits where possible.
 
 ```{=latex}
 \newpage
