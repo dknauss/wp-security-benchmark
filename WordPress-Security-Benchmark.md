@@ -1214,7 +1214,7 @@ Block author archive enumeration at the web server level or with a plugin.
 
 **Assessment Status:** Manual
 
-**Description:** WordPress should require reauthentication (sudo mode) before performing sensitive administrative actions. An "action-gated" model should be adopted to challenge users for their password (and 2FA) when they attempt destructive or high-risk operations. This can be achieved with [Fortress](https://github.com/snicco/fortress) or [wp-sudo](https://github.com/dknauss/wp-sudo) (disclosure: maintained by this document's editor). 
+**Description:** WordPress should require reauthentication (sudo mode) before performing sensitive administrative actions. Users should be challenged for their password (and 2FA) when they attempt destructive or high-risk operations. This can be achieved with [Fortress](https://github.com/snicco/fortress) or [wp-sudo](https://github.com/dknauss/wp-sudo) (disclosure: maintained by this document's editor). 
 
 **Rationale:** If a session is hijacked, reauthentication limits the damage the attacker can do with the stolen session. Gating critical operations ensures that even with a stolen browser cookie, the attacker cannot perform permanent or high-impact changes without knowing the user's password. See the [WordPress Security Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide) §8.2 for the enterprise architecture rationale and the full list of recommended gated actions.
 
@@ -1231,7 +1231,7 @@ This is a manual check. Verify that a reauthentication challenge is triggered fo
 
 **Remediation:**
 
-Implement an action-gated reauthentication solution. Configure the "Action Registry" to gate all high-priority destructive operations. Ensure the solution supports both the Dashboard UI and relevant API surfaces (AJAX/REST).
+Implement a time-bound, action-gated, or role-based reauthentication solution. Configure the "Action Registry" to gate all high-priority destructive operations. Ensure the solution supports both the Dashboard UI and relevant API surfaces (AJAX/REST, XML-RPC, etc.).
 
 **Default Value:** WordPress requires password confirmation only for profile email/password changes.
 
