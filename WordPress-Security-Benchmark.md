@@ -1657,7 +1657,7 @@ This is a manual check. Verify that:
 
 - [ClamAV Documentation](https://docs.clamav.net/)
 - [WordPress Hardening](https://developer.wordpress.org/advanced-administration/security/hardening/)
-- [Snicco series on WordPress plugin-based malware scanners](https://github.com/dknauss/ai-assisted-docs) 
+- [Snicco series on WordPress plugin-based malware scanners](https://snicco.io/blog/wordpress-malware-scanner) 
 
 ---
 
