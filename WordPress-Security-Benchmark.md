@@ -1308,7 +1308,7 @@ add_filter( 'rest_endpoints', function( $endpoints ) {
 
 **Rationale:** Weak passwords are a primary vector for account takeover. Modern standards (NIST SP 800-63B and OWASP) emphasize length and entropy over complexity (e.g., forcing special characters), and mandate checking against known compromised credentials.
 
-**Impact:** Users may need to update existing weak passwords. Requires a plugin for advanced enforcement (e.g., Wordfence, iThemes Security, or Passthrough Authentication).
+**Impact:** Users may need to update existing weak passwords. Requires a plugin for advanced enforcement.
 
 **Note on Password Hashing:** As of WordPress 6.8, user passwords are hashed with bcrypt by default. Argon2id is supported on compatible PHP environments and provides stronger resistance to GPU-accelerated brute-force attacks. For high-security deployments, consider enabling Argon2id via the `wp_hash_password_algorithm` filter, typically implemented as a must-use plugin.
 
@@ -1591,7 +1591,7 @@ Export logs to a centralized SIEM for correlation (Level 2).
 
 **Rationale:** Unauthorized file modifications are a strong indicator of compromise. Integrity monitoring detects web shells, backdoors, and unauthorized code changes.
 
-**Impact:** Can be implemented at the server level (AIDE, OSSEC, Tripwire) or WordPress level (Wordfence, Sucuri) or both.
+**Impact:** Can be implemented at the server (WP-CLI, AIDE, OSSEC, Tripwire) or application level (via many third-party plugins) or both.
 
 **Audit:**
 
@@ -1776,7 +1776,7 @@ Verify no security updates are pending.
 **Remediation:**
 
 1\. Enable auto-updates for plugins and themes where supported.
-2\. Subscribe to vulnerability notification services (Patchstack, WPScan, Wordfence). Use the Exploit Prediction Scoring System (EPSS) alongside CVSS to prioritize remediation by real-world exploitability.
+2\. Subscribe to vulnerability notification services (Patchstack, Sucuri, WPScan, and Wordfence). Use the Exploit Prediction Scoring System (EPSS) alongside CVSS to prioritize remediation by real-world exploitability.
 3\. Establish a maintenance schedule for manual update review (weekly minimum).
 4\. Deploy virtual patching for critical vulnerabilities that cannot be patched immediately.
 
@@ -1787,6 +1787,7 @@ Verify no security updates are pending.
 **References:**
 
 - [Patchstack Vulnerability Database](https://patchstack.com/database/)
+- [Exploit Prediction Scoring System](https://www.first.org/epss/)
 
 ---
 
@@ -1831,7 +1832,7 @@ nginx -v 2>&1 || apache2 -v 2>&1  # On RHEL/AlmaLinux/Rocky Linux: httpd -v
 mysql --version
 ```
 2. Integrate SBOM generation into deployment pipelines.
-3. Cross-reference the SBOM against vulnerability databases (Patchstack, WPScan) on a regular schedule.
+3. Cross-reference the SBOM against vulnerability databases (Patchstack, Sucuri, WPScan, and Wordfence) on a regular schedule.
 
 **Default Value:** No SBOM is maintained by default.
 
@@ -1854,7 +1855,7 @@ This section addresses the deployment and configuration of a Web Application Fir
 
 **Assessment Status:** Manual
 
-**Description:** Deploy a Web Application Firewall (WAF). This can be a server-level solution such as **ModSecurity** or **Coraza** with the OWASP Core Rule Set (CRS), or a cloud-based solution such as **Cloudflare WAF**, **Akamai**, or **Sucuri**.
+**Description:** Deploy a Web Application Firewall (WAF). This can be a server-level solution, such as **ModSecurity**, **open-appsec**, **NGINX App Protect WAF**, **7G WAF**, or **Coraza** (OWASP Coraza WAF) with the OWASP Core Rule Set (CRS), or a cloud-based solution, such as **Cloudflare WAF**, **Akamai**, or **Sucuri**.
 
 **Rationale:** A WAF provides immediate protection against common web attacks (SQLi, XSS, RCE) before they reach the application. For server-level WAFs (for example, ModSecurity or Coraza), WordPress-specific exclusion rules are necessary to allow legitimate functionality (like post saving and media uploads) to pass through without being blocked as false positives. Cloud WAFs typically manage these rulesets automatically.
 
