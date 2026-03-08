@@ -71,10 +71,11 @@ jobs:
             echo "  Updated date -> $today in $md_file"
           fi
 
-      - name: Convert Markdown file
+      - name: Convert primary document
         run: |
           md_file="WordPress-Security-Benchmark.md"
           base="${md_file%.md}"
+          docx_file="${base}.docx"
 
           # Read version from YAML frontmatter
           version=$(sed -n '/^---$/,/^---$/{ s/^version: *"\{0,1\}\([^"]*\)"\{0,1\}/\1/p }' "$md_file")
@@ -82,29 +83,32 @@ jobs:
 
           echo "▶ $md_file (${display_date})"
 
-          # PDF via eisvogel + XeLaTeX
+          # 1) Markdown -> DOCX (intermediary template layer)
           pandoc "$md_file" \
+            --reference-doc=".github/pandoc/reference.docx" \
+            --toc --toc-depth=3 \
+            -o "$docx_file"
+          echo "  ✓ DOCX"
+
+          # 2) DOCX -> PDF
+          pandoc "$docx_file" \
+            --from docx \
             --template eisvogel \
             --pdf-engine xelatex \
             --defaults ".github/pandoc/pdf-defaults.yaml" \
             --metadata "date=${display_date}" \
             --toc --toc-depth=3 \
-            -o "${base}.pdf" \
-            && echo "  ✓ PDF" || echo "  ✗ PDF failed"
+            -o "${base}.pdf"
+          echo "  ✓ PDF"
 
-          # DOCX via reference template
-          pandoc "$md_file" \
-            --reference-doc=".github/pandoc/reference.docx" \
-            --toc --toc-depth=3 \
-            -o "${base}.docx" \
-            && echo "  ✓ DOCX" || echo "  ✗ DOCX failed"
-
-          # EPUB
-          pandoc "$md_file" \
+          # 3) DOCX -> EPUB
+          pandoc "$docx_file" \
+            --from docx \
             --toc --toc-depth=3 \
             --epub-title-page=false \
-            -o "${base}.epub" \
-            && echo "  ✓ EPUB" || echo "  ✗ EPUB failed"
+            --metadata "lang=en-US" \
+            -o "${base}.epub"
+          echo "  ✓ EPUB"
 
       - name: Commit generated documents
         run: |
