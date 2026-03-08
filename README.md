@@ -68,8 +68,11 @@ Strict security controls intended for high-risk environments handling sensitive 
 ## Project Structure
 
 - **[WordPress-Security-Benchmark.md](WordPress-Security-Benchmark.md)**: The full technical guide containing detailed audits and remediation steps.
-- **[WordPress-Security-Benchmark.docx](WordPress-Security-Benchmark.docx)**: A Microsoft Word .docx version formatted as a template to generate the PDF.
-- **[WordPress-Security-Benchmark.pdf](WordPress-Security-Benchmark.pdf)**: The PDF version of the guide.
+- **[WordPress-Security-Benchmark.docx](WordPress-Security-Benchmark.docx)**: A Microsoft Word `.docx` intermediary generated from Markdown and used as the template source for final publication formats.
+- **[WordPress-Security-Benchmark.epub](WordPress-Security-Benchmark.epub)**: The EPUB version generated from the `.docx` intermediary.
+- **[WordPress-Security-Benchmark.pdf](WordPress-Security-Benchmark.pdf)**: The PDF version generated from the `.docx` intermediary.
+
+Build pipeline: `WordPress-Security-Benchmark.md` -> `WordPress-Security-Benchmark.docx` -> `WordPress-Security-Benchmark.pdf` and `WordPress-Security-Benchmark.epub`.
 
 ---
 
