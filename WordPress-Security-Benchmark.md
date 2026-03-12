@@ -769,7 +769,7 @@ define( 'DISALLOW_FILE_MODS', true );
 
 **Rationale:** Without this setting, admin session cookies could be transmitted over unencrypted HTTP if a user accesses the admin via an HTTP URL, enabling session hijacking via network interception.
 
-**Impact:** All users must access the admin area over HTTPS. If the site does not have a valid TLS/SSL certificate configured, the admin interface will become inaccessible.
+**Impact:** All users must access the Dashboard over HTTPS. If the site does not have a valid TLS/SSL certificate configured, the admin interface will become inaccessible.
 
 **Audit:**
 
@@ -1802,7 +1802,7 @@ Verify no security updates are pending.
 
 **Rationale:** Supply chain compromise accounted for 15% of breaches in IBM's Cost of a Data Breach Report (2025) with an average cost of $4.91 million, and third-party involvement doubled to 30% per the Verizon DBIR (2025). An SBOM enables rapid identification of affected components when a vulnerability is disclosed in any dependency, reducing the time to assess exposure and apply patches.
 
-**Impact:** Requires tooling and process to generate and maintain the SBOM. Can be automated through `wp-cli` scripts and CI/CD pipeline integration.
+**Impact:** Requires tooling and process to generate and maintain the SBOM. Can be automated through WP-CLI scripts and CI/CD pipeline integration.
 
 **Audit:**
 
@@ -2330,7 +2330,7 @@ The following table summarizes all recommendations in this benchmark.
 
 | **ID** | **Recommendation**                                  | **Level** | **Assessment** |
 | :--- | :-------------------------------------------------- | :-------- | :------------- |
-| 1.1  | Ensure TLS 1.2+ is enforced                         | L2        | Automated      |
+| 1.1  | Ensure TLS 1.2+ is enforced                         | L1        | Automated      |
 | 1.2  | Ensure HTTP security headers are configured         | L1        | Automated      |
 | 1.3  | Ensure server tokens and version info are hidden    | L1        | Automated      |
 | 1.4  | Ensure PHP execution is blocked in uploads          | L1        | Automated      |
