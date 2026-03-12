@@ -13,8 +13,9 @@ Last verified: 2026-03-12
 | Security controls | 50 | `grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | v1.0 |
 | Audit sections | 50 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` | v1.0 |
 | Remediation sections | 50 | `grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md` | v1.0 |
-| Code fences (total) | 248 | `grep -c '^\`\`\`' WordPress-Security-Benchmark.md` | v1.0 |
+| Code fences (total) | 250 | `grep -c '^\`\`\`' WordPress-Security-Benchmark.md` | v1.0 |
 | Opening fences (with language tag) | 34 | `grep -cE '^\`\`\`[a-z]' WordPress-Security-Benchmark.md` | v1.0 |
+| Opening fences (with raw attribute tag) | 2 | `grep -cE '^\`\`\`\{' WordPress-Security-Benchmark.md` | v1.0 |
 | Bare closing fences | 214 | `grep -cE '^\`\`\`$' WordPress-Security-Benchmark.md` | v1.0 |
 | Table rows | 63 | `grep -cE '^\| ' WordPress-Security-Benchmark.md` | v1.0 |
 | WP-CLI commands | 4 | `grep -cE '^\s*wp ' WordPress-Security-Benchmark.md` | v1.0 |
@@ -56,7 +57,7 @@ Last verified: 2026-03-12
 |---|---|---|
 | Every control has an Audit section | 50 = 50 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` |
 | Every control has a Remediation section | 50 = 50 | `grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md` |
-| Opening/closing fences balanced | 34 + 214 = 248 | Opening + bare = total code fences |
+| Opening/closing fences balanced | 34 + 2 + 214 = 250 | Tagged openings + raw-attribute openings + bare fences = total code fences |
 
 ## Verification Procedure
 
@@ -77,6 +78,7 @@ echo "Remediation sections: $(grep -c '\*\*Remediation:\*\*' WordPress-Security-
 echo "=== Code ==="
 echo "Fences total: $(grep -c '^```' WordPress-Security-Benchmark.md)"
 echo "Opening (tagged): $(grep -cE '^```[a-z]' WordPress-Security-Benchmark.md)"
+echo "Opening (raw attribute): $(grep -cE '^```\\{' WordPress-Security-Benchmark.md)"
 echo "Bare closing: $(grep -cE '^```$' WordPress-Security-Benchmark.md)"
 echo "WP-CLI commands: $(grep -cE '^\s*wp ' WordPress-Security-Benchmark.md)"
 
