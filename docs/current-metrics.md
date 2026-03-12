@@ -10,9 +10,9 @@ Last verified: 2026-03-12
 |---|---:|---|---|
 | Document lines | 2,421 | `wc -l WordPress-Security-Benchmark.md` | v1.0 |
 | Major sections (H2) | 22 | `grep -cE '^## ' WordPress-Security-Benchmark.md` | v1.0 |
-| Security controls | 50 | `grep -cE '^### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | v1.0 |
-| Audit sections | 50 | `grep -c '#### Audit' WordPress-Security-Benchmark.md` | v1.0 |
-| Remediation sections | 50 | `grep -c '#### Remediation' WordPress-Security-Benchmark.md` | v1.0 |
+| Security controls | 50 | `grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | v1.0 |
+| Audit sections | 50 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` | v1.0 |
+| Remediation sections | 50 | `grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md` | v1.0 |
 | Code fences (total) | 248 | `grep -c '^\`\`\`' WordPress-Security-Benchmark.md` | v1.0 |
 | Opening fences (with language tag) | 34 | `grep -cE '^\`\`\`[a-z]' WordPress-Security-Benchmark.md` | v1.0 |
 | Bare closing fences | 214 | `grep -cE '^\`\`\`$' WordPress-Security-Benchmark.md` | v1.0 |
@@ -54,8 +54,8 @@ Last verified: 2026-03-12
 
 | Check | Expected | Verification command |
 |---|---|---|
-| Every control has an Audit section | 50 = 50 | `grep -c '#### Audit' WordPress-Security-Benchmark.md` |
-| Every control has a Remediation section | 50 = 50 | `grep -c '#### Remediation' WordPress-Security-Benchmark.md` |
+| Every control has an Audit section | 50 = 50 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` |
+| Every control has a Remediation section | 50 = 50 | `grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md` |
 | Opening/closing fences balanced | 34 + 214 = 248 | Opening + bare = total code fences |
 
 ## Verification Procedure
@@ -70,9 +70,9 @@ wc -l WordPress-Security-Benchmark.md
 
 echo "=== Structure ==="
 echo "H2 sections: $(grep -cE '^## ' WordPress-Security-Benchmark.md)"
-echo "Controls: $(grep -cE '^### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md)"
-echo "Audit sections: $(grep -c '#### Audit' WordPress-Security-Benchmark.md)"
-echo "Remediation sections: $(grep -c '#### Remediation' WordPress-Security-Benchmark.md)"
+echo "Controls: $(grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md)"
+echo "Audit sections: $(grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md)"
+echo "Remediation sections: $(grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md)"
 
 echo "=== Code ==="
 echo "Fences total: $(grep -c '^```' WordPress-Security-Benchmark.md)"
