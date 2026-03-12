@@ -4,6 +4,9 @@ All notable changes to the WordPress Security Benchmark.
 
 ## Unreleased
 
+### Changed
+- Replaced the repo-local document-generation workflow with a caller to the shared reusable workflow in `ai-assisted-docs`, keeping the primary markdown source and generated artifact names unchanged.
+
 ### Added
 - `CHANGELOG.md` — this file.
 - `docs/current-metrics.md` — architectural fact counts with verification commands.
