@@ -5,6 +5,7 @@ All notable changes to the WordPress Security Benchmark.
 ## Unreleased
 
 ### Changed
+- Cited WordPress VIP step-up authentication as an example platform implementation of action-gated reauthentication in §5.5.
 - Updated version framing for the WordPress 7.0 release cycle by removing stale `WordPress 6.x` language and aligning the PHP baseline to `8.3+` with `8.4` staged validation guidance.
 - Corrected the administrator-username remediation to remove the invalid `wp user update --user_login` command, clarified the password-length recommendation around the 15-character baseline, and normalized the cross-document classification matrix wording.
 - Added centered page numbering to `.github/pandoc/reference.docx` so DOCX-derived PDF output includes footer page numbers through the shared generation pipeline.

@@ -1219,7 +1219,7 @@ Block author archive enumeration at the web server level or with a plugin.
 
 **Rationale:** If a session is hijacked, reauthentication limits the damage the attacker can do with the stolen session. Gating critical operations ensures that even with a stolen browser cookie, the attacker cannot perform permanent or high-impact changes without knowing the user's password. See the [WordPress Security Hardening Guide](https://github.com/dknauss/wp-security-hardening-guide) §8.2 for the enterprise architecture rationale and the full list of recommended gated actions.
 
-**Impact:** Requires a dedicated security solution (e.g., Fortress by Snicco). WordPress core does not natively enforce reauthentication for most admin actions.
+**Impact:** Requires a dedicated security solution (e.g., Fortress by Snicco) or an equivalent platform control. WordPress core does not natively enforce reauthentication for most admin actions. Managed platforms may provide this natively — for example, WordPress VIP requires step-up authentication (MFA reauthentication) before accessing higher-risk resources or performing sensitive, irreversible VIP Dashboard actions, with a one-hour unlock window.
 
 **Audit:**
 
@@ -1242,6 +1242,7 @@ Implement a time-bound, action-gated, or role-based reauthentication solution. C
 - [OWASP Authentication Cheat Sheet — Reauthentication](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
 - [NIST SP 800-63B — Reauthentication](https://pages.nist.gov/800-63-4/sp800-63b.html)
 - [Fortress sudo mode documentation](https://github.com/snicco/fortress/blob/beta/docs/modules/session/sudo-mode.md) (Snicco)
+- [WordPress VIP — Step-Up Authentication](https://docs.wpvip.com/manage-user-access/vip-dashboard/step-up-auth/) (example platform implementation)
 
 ---
 
