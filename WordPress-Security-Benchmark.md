@@ -1,6 +1,6 @@
 ---
 title: "WordPress Security Benchmark"
-subtitle: "Full Stack Hardening Guide — WordPress 6.x on Linux (Ubuntu/Debian)"
+subtitle: "Full Stack Hardening Guide — Current Supported WordPress Releases on Linux (Ubuntu/Debian)"
 editor: "Dan Knauss"
 date: "March 15, 2026"
 version: "1.0"
@@ -9,19 +9,19 @@ version: "1.0"
 
 ## Overview
 
-The _WordPress Security Benchmark_ provides prescriptive guidance for establishing a secure configuration posture for WordPress 6.x running on a Linux server stack. It covers the full stack: the operating system firewall, web server (Nginx or Apache), PHP runtime, MySQL/MariaDB database, and the WordPress application layer.
+The _WordPress Security Benchmark_ provides prescriptive guidance for establishing a secure configuration posture for current supported WordPress releases running on a Linux server stack. It covers the full stack: the operating system firewall, web server (Nginx or Apache), PHP runtime, MySQL/MariaDB database, and the WordPress application layer.
 
 The Benchmark is intended for system administrators, security engineers, DevOps teams, and WordPress developers responsible for deploying and maintaining WordPress installations in enterprise environments. It draws on many WordPress, LEMP/LAMP, and related security resources and standards (e.g., OWASP and NIST), as well as field experience with enterprise WordPress hardening.
 
 ## Target Technology
 
--   WordPress 6.x (latest stable release recommended)
+-   Current supported WordPress release (WordPress 7.0 release cycle)
 
 -   Ubuntu 22.04+ / Debian 12+ (or equivalent RHEL/CentOS)
 
 -   Nginx 1.24+ or Apache 2.4+
 
--   PHP 8.2+ (8.3+ recommended for new deployments)
+-   PHP 8.3+ (validate PHP 8.4 in staging before production rollout)
 
 -   MySQL 8.0+ or MariaDB 10.6+
 

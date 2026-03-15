@@ -3,8 +3,8 @@
 **Prescriptive, Auditable Hardening Controls for Enterprise WordPress Environments.**
 
 [![License: CC BY-SA 4.0](https://img.shields.io/badge/License-CC%20BY--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
-[![WordPress Version](https://img.shields.io/badge/WordPress-6.x-blue.svg)](https://wordpress.org)
-[![PHP Version](https://img.shields.io/badge/PHP-8.2%2B-777bb4.svg)](https://www.php.net/)
+[![WordPress Version](https://img.shields.io/badge/WordPress-7.0%2B-blue.svg)](https://wordpress.org)
+[![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777bb4.svg)](https://www.php.net/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20(Ubuntu/Debian)-lightgrey.svg)](https://ubuntu.com/)
 
 ---
@@ -21,7 +21,7 @@ This document is **not** an operational how-to (use the [Operations Runbook](htt
 
 ## Overview
 
-The **WordPress Security Benchmark** provides prescriptive, actionable guidance for establishing a secure configuration posture for WordPress 6.x running on a modern Linux server stack. This guide covers the entire stack to address hardening at the OS, Web Server, PHP, and Database layers.
+The **WordPress Security Benchmark** provides prescriptive, actionable guidance for establishing a secure configuration posture for current supported WordPress releases running on a modern Linux server stack. This guide covers the entire stack to address hardening at the OS, Web Server, PHP, and Database layers.
 
 ### Key Focus Areas:
 - Web Server Hardening (Nginx & Apache)
@@ -45,9 +45,9 @@ This benchmark is optimized for the following environment:
 
 | Component | Minimum Version | Recommended |
 | :--- | :--- | :--- |
-| **WordPress** | 6.x | Latest Stable |
+| **WordPress** | Current supported release | Latest Stable |
 | **OS** | Ubuntu 22.04+ / Debian 12+ | Latest LTS |
-| **PHP** | 8.2+ | 8.3+ |
+| **PHP** | 8.3+ | 8.4 after staging validation |
 | **Web Server** | Nginx 1.24+ / Apache 2.4+ | Latest |
 | **Database** | MySQL 8.0+ / MariaDB 10.6+ | Latest |
 
