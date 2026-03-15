@@ -1092,9 +1092,10 @@ Review the list. Verify that each admin account is actively needed and assigned 
 **Remediation:**
 
 1\. Audit existing administrator accounts.
-2\. Rename any account using a predictable username (e.g., `admin`) to a unique, non-guessable value:
+2\. Replace any account using a predictable username (e.g., `admin`) with a unique, non-guessable login. WP-CLI does not support changing `user_login` in place:
 ```
-$ wp user update <user-id> --user_login=<new-username> --path=/path/to/wordpress
+$ wp user create <new-username> <new-user-email> --role=administrator --path=/path/to/wordpress
+$ wp user delete <old-user-id> --reassign=<new-user-id> --yes --path=/path/to/wordpress
 ```
 3\. Downgrade accounts that don't require full admin capabilities to Editor or a custom role.
 4\. Reserve one primary administrator account for break-glass emergencies.
@@ -1304,7 +1305,7 @@ add_filter( 'rest_endpoints', function( $endpoints ) {
 
 **Assessment Status:** Manual
 
-**Description:** Configure WordPress to enforce a strong password policy that follows current OWASP and NIST recommendations: minimum length of 15 characters if MFA is not enabled, check against breached password/dictionary lists, and avoid arbitrary complexity rules that lead to predictable patterns.
+**Description:** Configure WordPress to enforce a strong password policy that follows current OWASP and NIST recommendations: minimum length of 15 characters as the baseline recommendation, screening against breached password and dictionary lists, and no arbitrary complexity rules that lead to predictable patterns. NIST permits 8 characters only when a password is used solely as part of a multi-factor authentication flow.
 
 **Rationale:** Weak passwords are a primary vector for account takeover. Modern standards (NIST SP 800-63B and OWASP) emphasize length and entropy over complexity (e.g., forcing special characters), and mandate checking against known compromised credentials.
 
@@ -2388,11 +2389,11 @@ Use this matrix to keep this benchmark aligned with the Hardening Guide and Oper
 
 | **Control Area** | **Baseline** | **Optional Hardened** | **Environment-Specific** |
 | :--- | :--- | :--- | :--- |
-| File editor/mods | `DISALLOW_FILE_EDIT = true` | `DISALLOW_FILE_MODS = true` with external update pipeline | Dashboard updates allowed where managed hosting controls patch cadence |
-| REST API | Public content routes available; sensitive routes require auth/permissions | Block user-enumeration routes and tighten custom endpoint callbacks | Global unauthenticated blocking only for private/intranet architectures |
-| XML-RPC | Keep only if business/integration-required | Disable via `xmlrpc_enabled` filter or server-level block when unused | Selective allowlists for required integrations (for example, mobile/Jetpack) |
-| File ownership | Least-privilege ownership model documented per environment | Per-site process isolation + immutable deploy artifacts | Provider-constrained ownership with compensating controls |
-| SSH access | Key-based auth, no passwords, host firewall/fail2ban | Non-standard SSH port to reduce scanner noise | No SSH on managed platforms with equivalent provider controls |
+| File editor/mods | `DISALLOW_FILE_EDIT = true` | `DISALLOW_FILE_MODS = true` with external update pipeline | Dashboard updates retained where platform-managed patch cadence requires it |
+| REST API | Public content routes allowed; sensitive routes protected by auth/permissions | Block user-enumeration routes and harden custom endpoint callbacks | Global unauthenticated blocking only for private/intranet deployments |
+| XML-RPC | Keep only when required by integrations | Disable with `xmlrpc_enabled` and/or server-level block when unused | Route/IP allowlisting for required integrations |
+| File ownership | Documented least-privilege model per environment | Per-site process isolation and immutable deploy artifacts | Provider-constrained ownership with compensating controls |
+| SSH access | Key-only auth + host firewall/fail2ban | Non-standard SSH port for scanner-noise reduction | Managed-host controls where SSH is unavailable |
 
 ## Appendix B: Deprecated and Invalid Constants Guardrail
 

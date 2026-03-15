@@ -2,13 +2,13 @@
 
 This file is the single source of truth for architectural counts in the WordPress Security Benchmark. Check this file before writing any count in prose, and update it when adding or removing controls, sections, or structural elements.
 
-Last verified: 2026-03-12
+Last verified: 2026-03-15
 
 ## Architectural Facts
 
 | Fact | Value | Verification command | Last changed |
 |---|---:|---|---|
-| Document lines | 2,421 | `wc -l WordPress-Security-Benchmark.md` | v1.0 |
+| Document lines | 2,422 | `wc -l WordPress-Security-Benchmark.md` | 2026-03-15 |
 | Major sections (H2) | 22 | `grep -cE '^## ' WordPress-Security-Benchmark.md` | v1.0 |
 | Security controls | 50 | `grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | v1.0 |
 | Audit sections | 50 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` | v1.0 |
