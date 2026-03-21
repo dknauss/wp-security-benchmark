@@ -2418,6 +2418,6 @@ When documenting Argon2 support, refer to the `wp_hash_password_algorithm` filte
 
 ## License and Attribution
 
-This document is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)](https://creativecommons.org/licenses/by-sa/4.0/). You may copy, redistribute, remix, transform, and build upon this material for any purpose, including commercial use, provided you give appropriate credit and distribute your contributions under the same license.
+This document is licensed under the [Creative Commons Attribution-ShareAlike 4.0 International License (CC-BY-SA-4.0)](https://creativecommons.org/licenses/by-sa/4.0/). You may copy, redistribute, remix, transform, and build upon this material for any purpose, including commercial use, provided you give appropriate credit and distribute your contributions under the same license.
 
 **Sources and Acknowledgments:** The format of this benchmark is adapted from industry-standard benchmarks published by the Center for Internet Security (CIS). Technical guidance draws on the OWASP Top 10 (2025), NIST SP 800-63B, the Verizon Data Breach Investigations Report (2025), and IBM's Cost of a Data Breach Report (2025).
