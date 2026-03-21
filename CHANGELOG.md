@@ -5,6 +5,7 @@ All notable changes to the WordPress Security Benchmark.
 ## Unreleased
 
 ### Changed
+- Refreshed `docs/current-metrics.md` after the benchmark document line count increased to 2,423, restoring metrics-validator parity.
 - Cited WordPress VIP step-up authentication as an example platform implementation of action-gated reauthentication in §5.5.
 - Updated version framing for the WordPress 7.0 release cycle by removing stale `WordPress 6.x` language and aligning the PHP baseline to `8.3+` with `8.4` staged validation guidance.
 - Corrected the administrator-username remediation to remove the invalid `wp user update --user_login` command, clarified the password-length recommendation around the 15-character baseline, and normalized the cross-document classification matrix wording.
