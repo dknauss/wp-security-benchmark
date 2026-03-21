@@ -3,7 +3,7 @@ title: "WordPress Security Benchmark"
 subtitle: "Full Stack Hardening Guide — Current Supported WordPress Releases on Linux (Ubuntu/Debian)"
 editor: "Dan Knauss"
 date: "March 21, 2026"
-version: "1.0"
+version: "1.1"
 
 ---
 

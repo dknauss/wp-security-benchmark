@@ -3,7 +3,7 @@
 **Prescriptive, Auditable Hardening Controls for Enterprise WordPress Environments.**
 
 [![License: CC-BY-SA-4.0](https://img.shields.io/badge/License-CC--BY--SA--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/)
-[![WordPress Version](https://img.shields.io/badge/WordPress-7.0%2B-blue.svg)](https://wordpress.org)
+[![WordPress Version](https://img.shields.io/badge/WordPress-current%20supported-blue.svg)](https://wordpress.org)
 [![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777bb4.svg)](https://www.php.net/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20(Ubuntu/Debian)-lightgrey.svg)](https://ubuntu.com/)
 
@@ -108,18 +108,22 @@ This benchmark is one of four complementary documents covering WordPress securit
 
 ## Contributors
 
-- [Dan Knauss](https://dan.knauss.ca) — author, editor
+- [Dan Knauss](https://dan.knauss.ca) — (Human) — author, editor, reviewer, researcher
 - [Claude](https://claude.ai) (Anthropic) — review, revision, cross-document alignment
 - [Gemini](https://gemini.google.com) (Google) — independent review and revision planning
 - [GPT-5 Codex](https://openai.com) (OpenAI) — independent review and revision planning
 
 ## AI-Assisted Editorial Process
 
-This document and the three related documents in this series are revised with the assistance of frontier LLMs. Multiple models independently review all four documents for factual errors, outdated guidance, and cross-document misalignments, with the WordPress Advanced Administration Handbook as the primary authority. A human editor reviews, approves, or rejects every recommended change before it is applied. For the full methodology, see **[AI-Assisted Documentation Processes](https://github.com/dknauss/ai-assisted-docs)**. The machine-readable editorial agent skills and cross-document consistency rules are in the [skills directory](https://github.com/dknauss/ai-assisted-docs/tree/main/wp-docs-skills).
+This document and the three related documents in this series are revised with the assistance of frontier LLMs. Multiple models independently review all four documents for factual errors, outdated guidance, and cross-document misalignments, with the WordPress Advanced Administration Handbook as primary authority. A human editor reviews, approves, or rejects every recommended change before it is applied. For the full methodology, see **[AI-Assisted Documentation Processes](https://github.com/dknauss/ai-assisted-docs)**. The machine-readable editorial agent skills and cross-document consistency rules are in the [skills directory](https://github.com/dknauss/ai-assisted-docs/tree/main/wp-docs-skills).
 
-## Contributing
+## Project Health
 
-Contributions are welcome! If you find an error or have an improvement for the benchmark, please open an issue or submit a pull request.
+- Contributions: see **[CONTRIBUTING.md](CONTRIBUTING.md)**.
+- Security reporting: see **[SECURITY.md](SECURITY.md)**.
+- Community expectations: see **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**.
+- Support boundaries: see **[SUPPORT.md](SUPPORT.md)**.
+- License: **[LICENSE](LICENSE)**.
 
 ---
 

@@ -64,7 +64,7 @@ Last verified: 2026-03-21
 Run all verification commands after any structural edit:
 
 ```bash
-cd /Users/danknauss/Documents/GitHub/wp-security-benchmark
+cd "$(git rev-parse --show-toplevel)"
 
 echo "=== Document size ==="
 wc -l WordPress-Security-Benchmark.md
