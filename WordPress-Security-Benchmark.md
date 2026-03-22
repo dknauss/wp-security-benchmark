@@ -15,7 +15,7 @@ The Benchmark is intended for system administrators, security engineers, DevOps 
 
 ## Target Technology
 
--   Current supported WordPress release (WordPress 6.9.4 as of March 21, 2026; planned WordPress 7.0 release cycle)
+-   Current supported WordPress release (WordPress 6.9.1 as of March 21, 2026; WordPress 7.0 scheduled for April 9, 2026)
 
 -   Ubuntu 22.04+ / Debian 12+ (or equivalent RHEL/CentOS)
 

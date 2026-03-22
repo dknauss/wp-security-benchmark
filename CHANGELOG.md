@@ -10,6 +10,7 @@ All notable changes to the WordPress Security Benchmark.
 - Added a Playwright-based PDF visual smoke test and dedicated workflow with committed baselines for critical page regions.
 
 ### Changed
+- Corrected current-version framing to reflect WordPress 6.9.1 as the latest stable release and WordPress 7.0 as scheduled for April 9, 2026.
 - Refactored the document-generation pipeline into explicit build, validate, and publish jobs so generated artifacts are validated before the bot commit step runs.
 - Updated GitHub Action pins in the PDF visual validation workflow to Node 24-capable major versions to avoid runner deprecation warnings.
 - Set a short PDF running header title so the benchmark subtitle no longer appears in page headers.
