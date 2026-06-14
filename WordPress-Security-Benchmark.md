@@ -1950,7 +1950,7 @@ AI tools are increasingly integrated into WordPress workflows for content genera
 
 **Assessment Status:** Automated
 
-**Description:** API keys and credentials for AI/LLM services (OpenAI, Anthropic, Google, etc.) must be stored securely and never exposed in client-side code, version control, or the WordPress database. In WordPress 7.0, the Connectors API can source AI provider credentials from environment variables, PHP constants, or the database, but database-backed connector secrets are not encrypted.
+**Description:** API keys and credentials for AI/LLM services (OpenAI, Anthropic, Google, etc.) must be stored securely and never exposed in client-side code, version control, or unencrypted database storage. WordPress 7.0's Connectors API can source AI provider credentials from environment variables, PHP constants, or the database, but WordPress does not encrypt database-backed connector secrets by default—prefer environment variables or `wp-config.php` constants.
 
 **Rationale:** AI API keys grant access to paid services and may allow data exfiltration or abuse. The Verizon DBIR (2025) found that leaked secrets in code repositories had a median remediation time of 94 days, with 66% being JSON Web Tokens. AI API keys are similarly at risk. The IBM X-Force 2026 Threat Intelligence Index reports that stolen credentials for AI chatbot platforms are now appearing in underground marketplaces, driven largely by infostealer infections — making secure storage and rotation of AI API keys an operational priority, not just a best practice.
 
