@@ -11,6 +11,7 @@ All notable changes to the WordPress Security Benchmark.
 - Added a cross-format parity check so a small set of canonical phrases must remain present in the Markdown source and generated PDF, EPUB, and DOCX outputs.
 
 ### Changed
+- Separated Playwright PDF visual validation from the artifact publish path so `generate-docs.yml` can publish after artifact checks while the dedicated visual workflow handles layout regression checks on workflow, packaging, and Pandoc changes.
 - Corrected current-version framing to reflect the public WordPress 7.0 release and remove stale pre-release scheduling language.
 - Tightened AI secret-management guidance for WordPress 7.0 by adding Connectors API credential-source and database-storage context to control 11.1.
 - Refactored the document-generation pipeline into explicit build, validate, and publish jobs so generated artifacts are validated before the bot commit step runs.
