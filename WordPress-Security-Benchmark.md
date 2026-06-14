@@ -15,7 +15,7 @@ The Benchmark is intended for system administrators, security engineers, DevOps 
 
 ## Target Technology
 
--   Current supported WordPress release (WordPress 6.9.1 as of March 21, 2026; WordPress 7.0 scheduled for April 9, 2026)
+-   Current supported WordPress release series (WordPress 7.0; initial 7.0 release on May 20, 2026)
 
 -   Ubuntu 22.04+ / Debian 12+ (or equivalent RHEL/CentOS)
 
@@ -1950,11 +1950,11 @@ AI tools are increasingly integrated into WordPress workflows for content genera
 
 **Assessment Status:** Automated
 
-**Description:** API keys and credentials for AI/LLM services (OpenAI, Anthropic, Google, etc.) must be stored securely and never exposed in client-side code, version control, or the WordPress database.
+**Description:** API keys and credentials for AI/LLM services (OpenAI, Anthropic, Google, etc.) must be stored securely and never exposed in client-side code, version control, or the WordPress database. In WordPress 7.0, the Connectors API can source AI provider credentials from environment variables, PHP constants, or the database, but database-backed connector secrets are not encrypted.
 
 **Rationale:** AI API keys grant access to paid services and may allow data exfiltration or abuse. The Verizon DBIR (2025) found that leaked secrets in code repositories had a median remediation time of 94 days, with 66% being JSON Web Tokens. AI API keys are similarly at risk. The IBM X-Force 2026 Threat Intelligence Index reports that stolen credentials for AI chatbot platforms are now appearing in underground marketplaces, driven largely by infostealer infections — making secure storage and rotation of AI API keys an operational priority, not just a best practice.
 
-**Impact:** Requires using `wp-config.php` constants or environment variables rather than storing keys in plugin settings (database).
+**Impact:** Requires using `wp-config.php` constants or environment variables rather than storing keys in plugin settings or database-backed connector settings.
 
 **Audit:**
 
@@ -1964,21 +1964,22 @@ grep -r "sk-" /path/to/wordpress/wp-content/ --include="*.php"
 wp db query "SELECT option_name, option_value FROM wp_options WHERE option_value LIKE '%sk-%' OR option_value LIKE '%key-%'"
 # Run as the WordPress site user, not root.
 ```
-2. Verify API keys are defined as constants in `wp-config.php` or loaded from environment variables.
+2. Verify API keys are defined as constants in `wp-config.php` or loaded from environment variables rather than relying on database-backed connector settings.
 3. Confirm `.gitignore` excludes `wp-config.php` and environment files.
 
 **Remediation:**
 
 1. Move all AI API keys to `wp-config.php` constants (e.g., `define('OPENAI_API_KEY', getenv('OPENAI_API_KEY'));`).
-2. Remove any API keys stored in the `wp_options` table or in plugin settings screens.
+2. Remove any API keys stored in the `wp_options` table, plugin settings screens, or database-backed connector settings.
 3. Rotate any keys that have been exposed in version control or client-side code.
 
-**Default Value:** Most AI plugins store API keys in the database via the WordPress settings API.
+**Default Value:** Many AI plugins — and WordPress 7.0 connector setups that rely on the admin screen instead of environment variables or PHP constants — store API keys in the database.
 
 
 **References:**
 
 - [OWASP Secrets Management Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html)
+- [Introducing the Connectors API in WordPress 7.0](https://make.wordpress.org/core/2026/03/18/introducing-the-connectors-api-in-wordpress-7-0/)
 - Felix Arntz: [Storing Confidential Data in WordPress](https://felix-arntz.me/blog/storing-confidential-data-in-wordpress/)
 - Pantheon: [Secrets Management in WordPress](https://docs.pantheon.io/guides/wordpress-developer/wordpress-secrets-management)
 - Snicco: [Vaults and Pillars](https://github.com/snicco/fortress/blob/beta/docs/modules/vaults_and_pillars/wordpress_options.md)

@@ -11,7 +11,8 @@ All notable changes to the WordPress Security Benchmark.
 - Added a cross-format parity check so a small set of canonical phrases must remain present in the Markdown source and generated PDF, EPUB, and DOCX outputs.
 
 ### Changed
-- Corrected current-version framing to reflect WordPress 6.9.1 as the latest stable release and WordPress 7.0 as scheduled for April 9, 2026.
+- Corrected current-version framing to reflect the public WordPress 7.0 release and remove stale pre-release scheduling language.
+- Tightened AI secret-management guidance for WordPress 7.0 by adding Connectors API credential-source and database-storage context to control 11.1.
 - Refactored the document-generation pipeline into explicit build, validate, and publish jobs so generated artifacts are validated before the bot commit step runs.
 - Updated GitHub Action pins in the PDF visual validation workflow to Node 24-capable major versions to avoid runner deprecation warnings.
 - Set a short PDF running header title so the benchmark subtitle no longer appears in page headers.
