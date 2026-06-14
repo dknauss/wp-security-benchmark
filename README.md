@@ -2,7 +2,7 @@
 
 **Prescriptive, Auditable Hardening Controls for Enterprise WordPress Environments.**
 
-[![License: CC-BY-SA-4.0](https://img.shields.io/badge/License-CC--BY--SA--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/) [![CI](https://github.com/dknauss/wp-security-benchmark/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/dknauss/wp-security-benchmark/actions/workflows/generate-docs.yml) [![Latest Release](https://img.shields.io/github/v/release/dknauss/wp-security-benchmark)](https://github.com/dknauss/wp-security-benchmark/releases) [![Security Policy](https://img.shields.io/badge/security-policy-4c1)](SECURITY.md)
+[![License: CC-BY-SA-4.0](https://img.shields.io/badge/License-CC--BY--SA--4.0-lightgrey.svg)](https://creativecommons.org/licenses/by-sa/4.0/) [![CI](https://github.com/dknauss/wp-security-benchmark/actions/workflows/generate-docs.yml/badge.svg)](https://github.com/dknauss/wp-security-benchmark/actions/workflows/generate-docs.yml) [![Latest Release](https://img.shields.io/github/v/release/dknauss/wp-security-benchmark)](https://github.com/dknauss/wp-security-benchmark/releases) [![Security Policy](https://img.shields.io/badge/security-policy-4c1)](SECURITY.md) [![AI Authorship](https://img.shields.io/badge/AI%20authorship-disclosed-8a63d2.svg)](docs/ai-authorship.md)
 [![WordPress Version](https://img.shields.io/badge/WordPress-current%20supported-blue.svg)](https://wordpress.org)
 [![PHP Version](https://img.shields.io/badge/PHP-8.3%2B-777bb4.svg)](https://www.php.net/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20(Ubuntu/Debian)-lightgrey.svg)](https://ubuntu.com/)
