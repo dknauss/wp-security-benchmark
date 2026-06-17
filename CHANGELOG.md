@@ -9,6 +9,7 @@ All notable changes to the WordPress Security Benchmark.
 - Added a repo-local generated-artifact smoke validator and a dedicated `Validate Artifacts` workflow for PDF, EPUB, and DOCX outputs.
 - Added a Playwright-based PDF visual smoke test and dedicated workflow with committed baselines for critical page regions.
 - Added a cross-format parity check so a small set of canonical phrases must remain present in the Markdown source and generated PDF, EPUB, and DOCX outputs.
+- Added Learn WordPress's [Writing in the WordPress voice](https://learn.wordpress.org/course/writing-in-the-wordpress-voice/) as the recommended WordPress-specific voice and accessibility reference when benchmark findings are adapted into stakeholder communications.
 
 ### Changed
 - Corrected current-version framing to reflect the public WordPress 7.0 release and remove stale pre-release scheduling language.
