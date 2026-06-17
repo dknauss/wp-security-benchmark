@@ -82,12 +82,15 @@ This guide is intended for:
 - **System Administrators** & **DevOps Engineers**
 - **Security Engineers**
 - **WordPress Developers**
+- **Maintainers or communicators** who need to summarize audit findings clearly for stakeholders
 
 Each recommendation includes:
 1. **Description**: Clear explanation of the setting.
 2. **Rationale**: Why this setting is critical for security.
 3. **Audit**: Commands to verify compliance on your server.
 4. **Remediation**: Step-by-step instructions to apply the fix.
+
+Recommended foundational training for anyone adapting benchmark findings into customer-facing reports, advisories, or internal guidance: [Learn WordPress — Writing in the WordPress voice](https://learn.wordpress.org/course/writing-in-the-wordpress-voice/). Pair it with the [WordPress Security Style Guide](https://github.com/dknauss/wp-security-style-guide) when audit results need to be translated into clear, audience-appropriate language.
 
 ---
 
@@ -115,7 +118,7 @@ This benchmark is one of four complementary documents covering WordPress securit
 
 ## AI-Assisted Editorial Process
 
-This document and the three related documents in this series are revised with the assistance of frontier LLMs. Multiple models independently review all four documents for factual errors, outdated guidance, and cross-document misalignments, with the WordPress Advanced Administration Handbook as primary authority. A human editor reviews, approves, or rejects every recommended change before it is applied. For the full methodology, see **[AI-Assisted Documentation Processes](https://github.com/dknauss/ai-assisted-docs)**. The machine-readable editorial agent skills and cross-document consistency rules are in the [skills directory](https://github.com/dknauss/ai-assisted-docs/tree/main/wp-docs-skills).
+This document and the three related documents in this series are revised with the assistance of frontier LLMs. Multiple models independently review all four documents for factual errors, outdated guidance, and cross-document misalignments, using WordPress technical documentation as primary authority for product facts and the Learn WordPress course [Writing in the WordPress voice](https://learn.wordpress.org/course/writing-in-the-wordpress-voice/) as primary authority for WordPress-specific voice and accessibility guidance. A human editor reviews, approves, or rejects every recommended change before it is applied. For the full methodology, see **[AI-Assisted Documentation Processes](https://github.com/dknauss/ai-assisted-docs)**. The machine-readable editorial agent skills and cross-document consistency rules are in the [skills directory](https://github.com/dknauss/ai-assisted-docs/tree/main/wp-docs-skills).
 
 ## Project Health
 
