@@ -12,6 +12,7 @@ All notable changes to the WordPress Security Benchmark.
 - Added Learn WordPress's [Writing in the WordPress voice](https://learn.wordpress.org/course/writing-in-the-wordpress-voice/) as the recommended WordPress-specific voice and accessibility reference when benchmark findings are adapted into stakeholder communications.
 
 ### Changed
+- Made the generated-artifact validator read the expected version string from the Markdown frontmatter instead of hardcoding `Version 1.1`, preventing future publish-flow failures after routine version bumps.
 - Separated Playwright PDF visual validation from the artifact publish path so `generate-docs.yml` can publish after artifact checks while the dedicated visual workflow handles layout regression checks on workflow, packaging, and Pandoc changes.
 - Corrected current-version framing to reflect the public WordPress 7.0 release and remove stale pre-release scheduling language.
 - Tightened AI secret-management guidance for WordPress 7.0 by adding Connectors API credential-source and database-storage context to control 11.1.
