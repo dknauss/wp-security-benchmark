@@ -2,59 +2,46 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-21)
+See: `.planning/PROJECT.md` (historical project charter) and `README.md` (current public workflow).
 
-**Core value:** The benchmark must remain source-grounded, auditable, and safe to apply to current supported WordPress environments.
-**Current focus:** Phase 1: Governance Baseline
+**Core value:** Keep the benchmark source-grounded, auditable, and safe to apply to current supported WordPress environments.
+**Current focus:** Maintenance backlog. The benchmark is shipped on `main`; CI, artifact generation, and series-alignment follow-up now happen incrementally rather than through the original bootstrap plan scaffold.
 
 ## Current Position
 
-**Current Phase:** 1
-**Current Phase Name:** Governance Baseline
-**Total Phases:** 4
-**Current Plan:** 0
-**Total Plans in Phase:** 2
-**Status:** Ready to plan
-**Last Activity:** 2026-03-21 - Initialized GSD planning state and repaired metrics-validator parity.
+**Current Phase:** Archived planning scaffold
+**Current Phase Name:** Historical bootstrap retained for reference only
+**Total Phases:** 4 archived scaffold directories
+**Current Plan:** None
+**Total Plans in Phase:** 0 active
+**Status:** Maintenance mode; no active phased plan
+**Last Activity:** 2026-06-17 — refreshed artifact-validation strategy and marked the original `.planning/` scaffold as historical so it no longer reads like pending work.
 
-**Progress:** 0% [░░░░░░░░░░]
+**Progress:** 100% of the original bootstrap scope is complete; further work is backlog-driven.
 
-## Performance Metrics
+## Context
 
-**Velocity:**
-- Total plans completed: 0
-- Average duration: 0 min
-- Total execution time: 0.0 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| - | - | - | - |
-
-**Recent Trend:**
-- Last 5 plans: none yet
-- Trend: Stable
-
-*GSD tracking begins with this milestone; historical v1.0 work was not reconstructed into plan metrics.*
+- The canonical benchmark is published and maintained from `main`.
+- Metrics, generated artifacts, release automation, and visual validation workflows already exist.
+- The `.planning/phases/01-*` through `04-*` directories are retained only as placeholders from the initial GSD bootstrap, not as active work queues.
 
 ## Decisions Made
 
-| Phase | Summary | Rationale |
-|-------|---------|-----------|
-| Init | Start GSD tracking from the next maintenance milestone. | The shipped benchmark predates `.planning/`, so reconstructing historical execution would add mostly invented detail. |
-| Init | Treat the repository as a documentation product with validation-heavy defaults. | Benchmark guidance is high-leverage security documentation, so drift and unverifiable edits are more dangerous than slower planning. |
+| Date | Summary | Rationale |
+|---|---|---|
+| 2026-03-21 | Start repo-local GSD tracking from the next maintenance milestone rather than reconstructing v1.0 history. | Backfilling fictional execution detail would have reduced trust in the planning record. |
+| 2026-06-17 | Reclassify the original phase scaffold as historical reference only. | The repo has already shipped the work those placeholders were meant to organize, so leaving them framed as active plans is misleading. |
 
 ## Pending Todos
 
-None yet.
+- Track future benchmark changes through explicit backlog or release-ready plan files only when new scoped work is approved.
 
 ## Blockers
 
-None yet.
+None.
 
 ## Session
 
-**Last Date:** 2026-03-21 16:43 MDT
-**Stopped At:** Project initialization complete; Phase 1 is ready for discussion and planning.
+**Last Date:** 2026-06-17 MDT
+**Stopped At:** Historical planning scaffold normalized; benchmark remains in maintenance mode.
 **Resume File:** None

@@ -5,6 +5,7 @@ All notable changes to the WordPress Security Benchmark.
 ## Unreleased
 
 ### Added
+- Added release-metadata validation so frontmatter version/date and the latest changelog release heading stay aligned, with optional tag/date enforcement during release publication.
 - Added a `Series review` issue form so quarterly and pre-release cross-document alignment checks can be tracked explicitly.
 - Added a repo-local generated-artifact smoke validator and a dedicated `Validate Artifacts` workflow for PDF, EPUB, and DOCX outputs.
 - Added a Playwright-based PDF visual smoke test and dedicated workflow with committed baselines for critical page regions.
@@ -12,6 +13,8 @@ All notable changes to the WordPress Security Benchmark.
 - Added Learn WordPress's [Writing in the WordPress voice](https://learn.wordpress.org/course/writing-in-the-wordpress-voice/) as the recommended WordPress-specific voice and accessibility reference when benchmark findings are adapted into stakeholder communications.
 
 ### Changed
+- Moved full PDF/DOCX/EPUB publication to the tag-driven release workflow and converted `generate-docs.yml` into a manual preview/build workflow instead of an automatic `main`-push publisher.
+- Made the generated-artifact validator read the expected version string from the Markdown frontmatter instead of hardcoding `Version 1.1`, preventing future publish-flow failures after routine version bumps.
 - Separated Playwright PDF visual validation from the artifact publish path so `generate-docs.yml` can publish after artifact checks while the dedicated visual workflow handles layout regression checks on workflow, packaging, and Pandoc changes.
 - Corrected current-version framing to reflect the public WordPress 7.0 release and remove stale pre-release scheduling language.
 - Tightened AI secret-management guidance for WordPress 7.0 by adding Connectors API credential-source and database-storage context to control 11.1.
