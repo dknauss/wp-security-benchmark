@@ -5,7 +5,7 @@ All notable changes to the WordPress Security Benchmark.
 ## Unreleased
 
 ### Fixed
-- Control 11.4: corrected after verification against WordPress 7.1.3 core. `wp_pre_execute_ability` bypasses the permission check only for direct PHP execution, not on the REST run endpoint; `wp_ability_permission_result` can allow even unauthenticated REST runs; `wp_ability_invoked` does not fire for REST-rejected requests. Added verified default values.
+- Control 11.4: corrected after verification against WordPress 7.1.3 core. `wp_pre_execute_ability` bypasses the permission check only for direct PHP execution, not on the REST run endpoint; `wp_ability_permission_result` can allow even unauthenticated REST runs; `wp_ability_invoked` does not fire for REST-rejected requests. Added verified default values, and per-channel behavior for WP-CLI (`wp ability`) and MCP Adapter 0.7.0.
 
 ### Fixed
 - Corrected findings from the 2026-10-07 documentation review and verification round. Recorded in `ai-assisted-docs/reviews/rounds/2026-10-07/`.
