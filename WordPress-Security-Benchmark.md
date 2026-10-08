@@ -2178,7 +2178,7 @@ Review custom AI integration code for direct output of AI-generated content with
 
 **Description:** Where the Abilities API is used (WordPress 6.9 and later; client-side integration from 7.0), code that can bypass or override an ability's permission check must be inventoried and reviewed, and every ability exposed to external clients must enforce authorization in its own `permission_callback`.
 
-**Rationale:** Abilities are named operations that AI agents, automation tools, and plugins can discover and run. WordPress 7.1 added execution lifecycle filters that any active plugin or theme can hook. Two of them change authorization outcomes: `wp_pre_execute_ability` can return a result before input validation and the permission check run, and `wp_ability_permission_result` can turn a denial from the ability's own `permission_callback` into an allow. WordPress 7.1 also added a `public` metadata flag that controls whether an ability is exposed to external clients such as the REST API. That flag, like `show_in_rest`, controls discovery and exposure only; the core dev note states that exposure flags must not be treated as a security boundary.
+**Rationale:** Abilities are named operations that AI agents, automation tools, and plugins can discover and run. WordPress 7.1 added execution lifecycle filters that any active plugin or theme can hook. Two of them change authorization outcomes. `wp_ability_permission_result` can turn a denial from the ability's own `permission_callback` into an allow on every execution path, including the REST API; a callback that returns `true` lets even an unauthenticated request run a REST-exposed ability. `wp_pre_execute_ability` can return a result before input validation and the permission check run when code calls `WP_Ability::execute()` directly from PHP; it does not bypass the check on the core REST run endpoint, which validates input and checks permissions in its own permission callback before `execute()` is called. The same split holds for the other channels: WP-CLI's `wp ability run` calls `execute()` directly, so the filter bypasses the check there, while the MCP Adapter (0.7.0) checks permissions before executing, so it does not. WordPress 7.1 also added a `public` metadata flag that controls whether an ability is exposed to external clients such as the REST API. That flag, like `show_in_rest`, controls discovery and exposure only; the core dev note states that exposure flags must not be treated as a security boundary. In WordPress 7.1.3, the REST list endpoints require a logged-in user with the `read` capability and show every REST-exposed ability to any such user, whether or not that user may run it; abilities that are not REST-exposed return 404 on the REST list and run endpoints but remain executable from PHP. Exposure is decided per channel. The MCP Adapter (0.7.0) uses `meta.mcp.public` when set and otherwise inherits `public`, and ignores `show_in_rest`, so an ability hidden from REST with `show_in_rest => false` can still be exposed to MCP clients. WP-CLI (`wp ability list` and `wp ability run`) applies no exposure check: it lists every registered ability and runs any of them, subject to the permission check for the `--user` given.
 
 **Impact:** Requires a code inventory when plugins are added or updated. No runtime impact.
 
@@ -2196,15 +2196,22 @@ Review each match. A callback on `wp_ability_permission_result` that can return 
 ```
 $ curl -s -u audit-user:APPLICATION-PASSWORD https://example.com/wp-json/wp-abilities/v1/abilities
 ```
-For each exposed ability, confirm the registering code supplies a `permission_callback` that checks a capability appropriate to what the ability does. A callback that only returns `true`, or only checks that the user is logged in, is a finding unless the ability returns non-sensitive data.
+Where the `wp ability` command is installed (the `wp-cli/ability-command` package), list every registered ability with its exposure flags, including those hidden from REST:
+```
+# Plugin-dependent: requires the wp-cli/ability-command package.
+$ wp ability list --fields=name,public,show_in_rest
+```
+If the MCP Adapter plugin is active, also review abilities that set `meta.mcp.public`. For each exposed ability, confirm the registering code supplies a `permission_callback` that checks a capability appropriate to what the ability does. A callback that only returns `true`, or only checks that the user is logged in, is a finding unless the ability returns non-sensitive data.
 
-3. Confirm that logging attached to `wp_ability_invoked` does not record raw input. The action fires before validation and receives unfiltered input, which may contain secrets or personal data.
+3. Confirm that logging attached to `wp_ability_invoked` does not record raw input. The action fires before validation and receives unfiltered input, which may contain secrets or personal data. Do not rely on it as a complete record of denied attempts: it fires inside `WP_Ability::execute()`, which the REST run endpoint and the MCP Adapter never reach for a request they reject. Denied WP-CLI runs are recorded, because WP-CLI calls `execute()` directly.
 
 **Remediation:**
 
 Remove or correct authorization overrides that are not justified. Add or tighten the `permission_callback` on each exposed ability. For abilities that should not be available to external clients, leave `public` unset (it defaults to `false`) and do not set `show_in_rest`. Give AI agents and automation tools a dedicated least-privilege account rather than an administrator's credentials (see 11.3).
 
-**Default Value:** Abilities are not exposed to external clients unless `public` or `show_in_rest` is set.
+**Default Value:** Abilities are not exposed to external clients unless `public` or `show_in_rest` is set. WordPress core registers no callbacks on the lifecycle filters. The three core abilities are REST-exposed; `core/get-site-info` and `core/get-environment-info` require `manage_options`, and `core/get-user-info` is available to any logged-in user for their own account.
+
+Behavior described in this control was verified on October 7, 2026 against WordPress 7.1.3 core code, the `wp-cli/ability-command` package (commit `c6112cc`), and MCP Adapter 0.7.0, on a test site.
 
 
 **References:**
