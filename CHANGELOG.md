@@ -22,6 +22,7 @@ All notable changes to the WordPress Security Benchmark.
 - §1.2: note on `worker-src` and WordPress 7.1 client-side media processing.
 
 ### Changed
+- Regenerated the PDF, DOCX, and EPUB files from the corrected Markdown and refreshed the PDF visual baselines, which had not been updated since March 2026.
 - Target Technology names WordPress 7.1.3 as current (October 7, 2026), states the support policy, and notes that 7.2 (scheduled December 8, 2026) is not covered. Reviewed for 7.1 changes.
 - `CONTRIBUTING.md` describes the current manual build and release flow. `CLAUDE.md` uses portable command names.
 - Updated `docs/current-metrics.md` for the above.
