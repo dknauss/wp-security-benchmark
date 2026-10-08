@@ -15,7 +15,7 @@ The Benchmark is intended for system administrators, security engineers, DevOps 
 
 ## Target Technology
 
--   Current supported WordPress release series (WordPress 7.0; initial 7.0 release on May 20, 2026)
+-   The latest WordPress release. As of October 7, 2026 that is WordPress 7.1.3 (7.1 was released on August 19, 2026). Only the most recent release is actively supported; security fixes for older branches (currently back to 4.7) are courtesy backports, not support. The controls in this edition were verified against WordPress 7.0 and reviewed for changes in 7.1. WordPress 7.2 is scheduled for December 8, 2026 and is not covered.
 
 -   Ubuntu 22.04+ / Debian 12+ (or equivalent RHEL/CentOS)
 
@@ -147,6 +147,7 @@ add_header Permissions-Policy "geolocation=(), camera=(), microphone=()" always;
 ```
 add_header Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline';" always;
 ```
+In WordPress 7.1 and later, the block editor processes images in the browser using a Web Worker loaded from a `blob:` URL. A policy without `worker-src 'self' blob:` blocks that worker and WordPress falls back to server-side processing, so the stricter policy above remains safe to deploy. Add `worker-src 'self' blob:` only if client-side media processing is wanted.
 For Apache, use the Headers module:
 ```apache
 Header always set X-Content-Type-Options "nosniff"
@@ -224,16 +225,23 @@ For Nginx, verify a location block exists for uploads:
 ```
 $ grep -A5 'uploads' /etc/nginx/sites-enabled/*
 ```
-Verify that PHP processing is denied for the uploads directory.
+Verify that PHP processing is denied for the uploads directory. The presence of the block is not sufficient: Nginx uses the first regular-expression location that matches, in the order the locations appear in the configuration, so the denial has no effect if a generic `location ~ \.php$` block comes first. Inspect the effective configuration (`nginx -T`) for ordering, then confirm the behavior with an inert test file on a staging copy:
+```
+$ echo '<?php echo "executed";' | sudo tee /path/to/wordpress/wp-content/uploads/exec-test.php
+$ curl -s -o /dev/null -w '%{http_code}\n' https://example.com/wp-content/uploads/exec-test.php
+$ sudo rm /path/to/wordpress/wp-content/uploads/exec-test.php
+```
+A 403 response indicates PHP execution is denied. A 200 response containing `executed` indicates the control is not effective.
 
 **Remediation:**
 
-For Nginx, add to the server block:
+For Nginx, add to the server block, above any generic PHP handler such as `location ~ \.php$` (regular-expression locations are evaluated in order and the first match wins):
 ```nginx
 location ~* /wp-content/uploads/.*\.php$ {
   deny all;
 }
 ```
+Adjust the path if uploads are stored elsewhere, and extend the pattern to any other extensions the server passes to PHP (for example, `.phtml` or `.phar`).
 For Apache, create wp-content/uploads/.htaccess:
 ```apache
 <FilesMatch "\.php$">
@@ -268,7 +276,7 @@ For Nginx, check for `limit_req` configuration:
 ```
 $ grep -r 'limit_req' /etc/nginx/
 ```
-Verify rate limiting zones are defined and applied to login, XML-RPC, and REST API locations.
+Verify rate limiting zones are defined and applied to login, XML-RPC, and REST API locations. The REST API is reachable in two forms: the pretty-permalink path (`/wp-json/...`) and the query-string form (`/?rest_route=/...`), which works on every site. Confirm both are covered.
 
 **Remediation:**
 
@@ -296,6 +304,20 @@ location ~ ^/wp-json/ {
 }
 ```
 
+The `/wp-json/` location does not match REST requests sent as `/?rest_route=/...`. To cover them, key a second zone on a variable that is empty for other requests (Nginx does not count requests with an empty key):
+
+```nginx
+# In http block:
+map $arg_rest_route $rest_route_key {
+    default $binary_remote_addr;
+    ""      "";
+}
+limit_req_zone $rest_route_key zone=wpapiquery:10m rate=5r/s;
+
+# In the location that handles the front controller (index.php):
+limit_req zone=wpapiquery burst=10 nodelay;
+```
+
 **Default Value:** No rate limiting is configured by default.
 
 
@@ -312,6 +334,12 @@ location ~ ^/wp-json/ {
 
 This section provides recommendations for securing the PHP runtime environment.
 
+> **NOTE:** Audit the PHP runtime that serves the site, not the command-line interpreter. The `php` CLI binary can be a different PHP version and loads its own `php.ini`, so `php -i` can report hardened values while PHP-FPM is not hardened. The audits below query the PHP-FPM binary (adjust `php-fpm8.3` to the installed version; under Apache `mod_php`, read the values from the Apache SAPI's `php.ini` instead). PHP-FPM pool files can override `php.ini` with `php_admin_value` and `php_value`, so also check the pool that serves the site:
+>
+> ```
+> $ grep -RE 'php_(admin_)?(value|flag)' /etc/php/8.3/fpm/pool.d/
+> ```
+
 #### 2.1 Ensure expose_php is disabled
 
 **Profile Applicability:** **Level 1**
@@ -327,7 +355,7 @@ This section provides recommendations for securing the PHP runtime environment.
 **Audit:**
 
 ```
-$ php -i | grep expose_php
+$ sudo php-fpm8.3 -i | grep expose_php
 ```
 Verify the output shows `expose_php => Off => Off`.
 
@@ -365,7 +393,7 @@ Restart PHP-FPM or the web server.
 **Audit:**
 
 ```
-$ php -i | grep display_errors
+$ sudo php-fpm8.3 -i | grep display_errors
 ```
 Verify: `display_errors => Off => Off`.
 
@@ -413,7 +441,7 @@ error_log = /var/log/php/error.log
 **Audit:**
 
 ```
-$ php -i | grep disable_functions
+$ sudo php-fpm8.3 -i | grep disable_functions
 ```
 Verify the output includes dangerous functions.
 
@@ -450,7 +478,7 @@ disable_functions = exec,passthru,shell_exec,system,proc_open,popen,curl_multi_e
 **Audit:**
 
 ```
-$ php -i | grep open_basedir
+$ sudo php-fpm8.3 -i | grep open_basedir
 ```
 Verify a restricted path is configured.
 
@@ -487,7 +515,7 @@ open_basedir = /var/www/example.com:/tmp:/usr/share/php
 **Audit:**
 
 ```
-$ php -i | grep -E 'session\.(cookie_secure|cookie_httponly|cookie_samesite|use_strict_mode)'
+$ sudo php-fpm8.3 -i | grep -E 'session\.(cookie_secure|cookie_httponly|cookie_samesite|use_strict_mode)'
 ```
 Verify all are set to appropriate secure values.
 
@@ -554,8 +582,9 @@ Verify the user has privileges only on the WordPress database and only the requi
 **Remediation:**
 
 ```sql
-REVOKE ALL PRIVILEGES ON *.* FROM 'wp_user'@'localhost';
+REVOKE ALL PRIVILEGES, GRANT OPTION FROM 'wp_user'@'localhost';
 ```
+This form is documented to remove privileges at every level (global, database, table, column, and routine). It does not revoke roles granted to the account, so confirm the result with `SHOW GRANTS` after applying the new grant.
 
 ```sql
 GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, DROP ON wp_database.* TO 'wp_user'@'localhost';
@@ -847,33 +876,41 @@ define( 'WP_DEBUG_LOG', '/var/log/wordpress/debug.log' );
 
 **Assessment Status:** Automated
 
-**Description:** The XML-RPC interface (`xmlrpc.php`) should be disabled unless specifically required by a remote publishing client or integration.
+**Description:** The XML-RPC interface (`xmlrpc.php`) should be blocked at the web server unless specifically required by a remote publishing client or integration.
 
-**Rationale:** XML-RPC is commonly exploited for brute-force amplification attacks (the `system.multicall` method allows hundreds of password attempts in a single HTTP request) and DDoS amplification via pingbacks. While WordPress core mitigates XML eXternal Entity (XXE) and entity expansion attacks by disabling the loading of custom XML entities, disabling XML-RPC entirely removes the endpoint from the attack surface.
+**Rationale:** XML-RPC is a second authentication surface that accepts username and password on every request, and its pingback methods have been abused for DDoS reflection and internal port probing. Historically, the `system.multicall` method allowed hundreds of password attempts in a single HTTP request; since WordPress 4.4, core stops evaluating credentials for the rest of a request after the first authentication failure, so that amplification no longer works on current versions. Password guessing across separate requests and pingback abuse remain. While WordPress core mitigates XML eXternal Entity (XXE) and entity expansion attacks by disabling the loading of custom XML entities, disabling XML-RPC entirely removes the endpoint from the attack surface.
 
 **Impact:** Disabling XML-RPC will break Jetpack (which requires it for WordPress.com communication), the WordPress mobile app (older versions), and any third-party tool that uses the XML-RPC API.
 
 **Audit:**
 
 ```
-$ curl -s -o /dev/null -w '%{http_code}' https://example.com/xmlrpc.php
+$ curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: text/xml' --data '<?xml version="1.0"?><methodCall><methodName>system.listMethods</methodName></methodCall>' https://example.com/xmlrpc.php
 ```
-A 200 response indicates XML-RPC is accessible. A 403 or 404 indicates it is blocked.
+A 200 response indicates XML-RPC is accessible. A 403 or 404 indicates it is blocked. Use a POST request: an enabled endpoint answers a plain GET with 405, which does not show whether it is blocked.
 
 **Remediation:**
 
-Block at the web server level (preferred).
+Block at the web server level. This is the only complete block.
 For Nginx:
 ```nginx
 location = /xmlrpc.php {
   deny all;
 }
 ```
-Or disable via a must-use plugin (place in `wp-content/mu-plugins/`, not `wp-config.php`):
+Where the web server cannot be configured, a must-use plugin (placed in `wp-content/mu-plugins/`, not `wp-config.php`) is a partial measure and does not satisfy this control on its own:
 ```php
 <?php
+// Disables XML-RPC methods that require authentication.
 add_filter( 'xmlrpc_enabled', '__return_false' );
+
+// Remove pingback methods, which do not require authentication.
+add_filter( 'xmlrpc_methods', function( $methods ) {
+    unset( $methods['pingback.ping'], $methods['pingback.extensions.getPingbacks'] );
+    return $methods;
+} );
 ```
+The `xmlrpc_enabled` filter turns off only the methods that require authentication. Pingbacks and any other unauthenticated or plugin-registered methods remain available unless removed separately, and the endpoint still loads WordPress for every request.
 
 Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by unchecking "Allow link notifications from other blogs (pingbacks and trackbacks) on new posts." Trackbacks operate independently of `xmlrpc.php` and should be disabled separately.
 
@@ -882,6 +919,9 @@ Additionally, disable trackbacks and pingbacks in **Settings → Discussion** by
 **References:**
 
 - [WordPress Hardening](https://developer.wordpress.org/advanced-administration/security/hardening/)
+- [`xmlrpc_enabled` Hook](https://developer.wordpress.org/reference/hooks/xmlrpc_enabled/)
+- [`xmlrpc_methods` Hook](https://developer.wordpress.org/reference/hooks/xmlrpc_methods/)
+- [`wp_xmlrpc_server::login()`](https://developer.wordpress.org/reference/classes/wp_xmlrpc_server/login/)
 
 ---
 
@@ -944,10 +984,12 @@ define( 'WP_AUTO_UPDATE_CORE', 'minor' );
 
 **Audit:**
 
+Count the definitions without printing the secret values:
 ```
-$ grep -E '(AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT)' /path/to/wp-config.php
+$ grep -cE "define\( *'(AUTH_KEY|SECURE_AUTH_KEY|LOGGED_IN_KEY|NONCE_KEY|AUTH_SALT|SECURE_AUTH_SALT|LOGGED_IN_SALT|NONCE_SALT)'" /path/to/wp-config.php
+$ grep -c 'put your unique phrase here' /path/to/wp-config.php
 ```
-Verify all eight constants are defined with long, unique random strings. None should be 'put your unique phrase here' (the placeholder value).
+Verify the first count is 8 and the second is 0 (the placeholder value is not in use). Do not print the keys and salts to a terminal, log, ticket, or AI-assisted session; if the values themselves must be inspected for length and uniqueness, do so locally on the host.
 
 **Remediation:**
 
@@ -1049,12 +1091,14 @@ This section addresses user authentication, session management, and role-based a
 
 This is a manual check. Verify that:
 1\. A 2FA plugin is installed and active.
-2\. All administrator accounts have 2FA configured.
-3\. SMS-based 2FA is not used (vulnerable to SIM-swapping).
+2\. Every administrator account has 2FA configured. Check each account; an active plugin does not show that any user has enrolled. With `two-factor` 0.17 or later: `wp two-factor status <user>`.
+3\. A control is in place that prevents an unenrolled administrator from using the Dashboard, and it has been tested with an unenrolled test account.
+4\. SMS-based 2FA is not used (vulnerable to SIM-swapping).
 
 **Remediation:**
 
 Install and configure `two-factor` (or an approved equivalent). Require 2FA enrollment for all users with Administrator, Editor, or Shop Manager roles.
+The `two-factor` plugin provides enrollment and the login challenge but has no built-in setting that makes 2FA mandatory for a role. Enforcement requires an additional control: MFA enforced at a single sign-on identity provider, an approved plugin that enforces enrollment, or maintained custom code. Document which one is used.
 Recommended: Enforce 2FA as mandatory for admin roles with a grace period for initial setup.
 
 > For step-by-step WP-CLI installation, configuration, break-glass recovery, and operational verification of the `two-factor` plugin, see [WordPress Operations Runbook](https://github.com/dknauss/wordpress-runbook-template) §5.5.
@@ -1119,7 +1163,7 @@ $ wp user delete <old-user-id> --reassign=<new-user-id> --yes --path=/path/to/wo
 
 **Assessment Status:** Automated
 
-**Description:** WordPress session cookies should have a maximum lifetime enforced, regardless of user activity. Privileged accounts (Administrators, Editors) should have shorter session limits (8–24 hours). Additionally, idle sessions should be terminated after a defined period of inactivity, the "Remember Me" option should be disabled or minimized for administrator accounts, and all active sessions should be purged on role or permission changes.
+**Description:** WordPress session cookies should have a maximum lifetime enforced, regardless of user activity. Privileged accounts (Administrators, Editors) should have shorter session limits (8–24 hours), including when "Remember Me" is selected. This control covers maximum lifetime only. Idle-session timeouts and purging sessions on role or capability changes are recommended additional measures; WordPress core provides neither, so they require a session-management plugin or custom code and must be verified separately.
 
 **Rationale:** Long-lived sessions increase the window of opportunity for session hijacking. If an auth cookie is stolen, a shorter lifetime limits how long the attacker can use it. Idle session timeouts and scheduled session destruction provide additional layers of defense that reduce the exposure window even further.
 
@@ -1131,17 +1175,16 @@ Check for session management plugins or custom code:
 ```
 $ grep -r 'auth_cookie_expiration' /path/to/wp-content/mu-plugins/ /path/to/wp-config.php
 ```
-Verify a filter is in place to limit session lifetime.
+Verify a filter is in place to limit session lifetime. The search shows only that a filter exists in those files. Confirm the enforced value by signing in as an administrator and checking the expiry of the `wordpress_logged_in_*` cookie, or the `expiration` of the newest entry in the user's `session_tokens` user meta.
 
 **Remediation:**
 
 Add a must-use plugin (wp-content/mu-plugins/session-limits.php):
 ```php
 add_filter( 'auth_cookie_expiration', function( $expiration, $user_id, $remember ) {
-  $user = get_userdata( $user_id );
-  
-  if ( in_array( 'administrator', $user->roles ) ) {
-    return 8 * HOUR_IN_SECONDS; // 8 hours for admins
+  // The same limit applies whether or not "Remember Me" was selected.
+  if ( user_can( $user_id, 'manage_options' ) ) {
+    return 8 * HOUR_IN_SECONDS; // 8 hours for administrators and Super Admins
   }
   
   return 24 * HOUR_IN_SECONDS; // 24 hours for others
@@ -1185,16 +1228,51 @@ If the response is a 301 redirect to an author archive, enumeration is possible.
 
 **Remediation:**
 
-Block the REST API users endpoint for unauthenticated requests via a must-use plugin:
+Require authentication for read access to the REST API users endpoint via a must-use plugin:
 ```php
+// Require authentication for read access to /wp/v2/users while preserving
+// core's own permission checks for every operation.
 add_filter( 'rest_endpoints', function( $endpoints ) {
-    if ( ! current_user_can( 'list_users' ) ) {
-        unset( $endpoints['/wp/v2/users'] );
-        unset( $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+    $routes = array( '/wp/v2/users', '/wp/v2/users/(?P<id>[\d]+)' );
+
+    foreach ( $routes as $route ) {
+        if ( empty( $endpoints[ $route ] ) ) {
+            continue;
+        }
+
+        foreach ( $endpoints[ $route ] as $key => $handler ) {
+            // Skip route options (namespace, schema, args); only handlers have numeric keys.
+            if ( ! is_numeric( $key ) || ! is_array( $handler ) || empty( $handler['permission_callback'] ) ) {
+                continue;
+            }
+
+            // Leave create, update, and delete handlers untouched.
+            $methods = is_array( $handler['methods'] ) ? array_keys( $handler['methods'] ) : explode( ',', $handler['methods'] );
+            if ( ! in_array( 'GET', array_map( 'trim', $methods ), true ) ) {
+                continue;
+            }
+
+            $core_check = $handler['permission_callback'];
+
+            $endpoints[ $route ][ $key ]['permission_callback'] = function( $request ) use ( $core_check ) {
+                if ( ! is_user_logged_in() ) {
+                    return new WP_Error(
+                        'rest_user_cannot_view',
+                        'Authentication is required to view users.',
+                        array( 'status' => rest_authorization_required_code() )
+                    );
+                }
+
+                // Defer to the original core check for authenticated requests.
+                return call_user_func( $core_check, $request );
+            };
+        }
     }
+
     return $endpoints;
-});
+} );
 ```
+This wraps core's permission check rather than replacing it or removing the routes. Anonymous read requests receive 401; authenticated requests are still decided by core, so the block editor's author lookups keep working for Editors, Authors, and Contributors, and the create, update, and delete handlers keep their original capability checks. Do not unset the users routes for every user without `list_users` (only Administrators have it by default), and do not replace the routes' permission callbacks with a single capability check.
 Block author archive enumeration at the web server level or with a plugin.
 
 **Default Value:** User data is publicly accessible via the REST API and author archives.
@@ -1344,9 +1422,9 @@ This is a manual check. Verify that:
 
 **Assessment Status:** Manual
 
-**Description:** User roles and custom capabilities should be defined in code (via a must-use plugin) rather than relying solely on database-stored role definitions. The `init` hook is the recommended place to call `add_role()` or `add_cap()`. This file-based approach ensures role definitions are version-controlled, auditable, and resistant to tampering.
+**Description:** User roles and custom capabilities should be defined in code (via a must-use plugin) rather than relying solely on database-stored role definitions, and the stored definitions should be reconciled against the code. This file-based approach makes role definitions version-controlled and auditable, and makes unexpected changes detectable.
 
-**Rationale:** Role and capability definitions stored only in the database can be modified by an attacker who achieves SQL injection or gains admin access. Defining roles in code makes privilege escalation via database manipulation significantly harder and ensures role definitions can be reviewed in version control.
+**Rationale:** WordPress stores role definitions in the `{prefix}user_roles` option and each user's role assignment in user meta. Both can be modified by an attacker who achieves SQL injection or gains admin access. Keeping the intended definitions in code gives a reviewable source of truth to compare against. Code alone does not protect the stored copy: `add_role()` writes to the database and does nothing when the role already exists, so calling it on every load does not undo tampering. Reconciliation (resetting each managed role's capabilities to the coded list) restores role definitions but not user-to-role assignments, which must be audited separately (see 5.2).
 
 **Impact:** Requires development effort to codify custom roles. Changes to roles must go through the deployment pipeline rather than the WordPress Dashboard.
 
@@ -1356,28 +1434,49 @@ This is a manual check. Verify that:
 1. Custom roles are defined in a must-use plugin.
 2. Role definitions are stored in version control.
 3. Default role capabilities have been reviewed and unnecessary capabilities removed.
+4. The stored capabilities of each managed role match the coded definition. Compare with `wp role list` and `wp cap list <role>`.
 
 **Remediation:**
 
-Create a must-use plugin (`wp-content/mu-plugins/custom-roles.php`) that registers custom roles and removes unnecessary default capabilities on every load:
+Create a must-use plugin (`wp-content/mu-plugins/custom-roles.php`) that holds the intended definitions, removes unnecessary default capabilities, and reconciles managed roles when the stored copy differs:
 ```php
 add_action( 'init', function() {
     // Remove capabilities from default roles as needed
     $editor = get_role( 'editor' );
-    if ( $editor ) {
+    if ( $editor && $editor->has_cap( 'unfiltered_html' ) ) {
         $editor->remove_cap( 'unfiltered_html' );
     }
 
-    // Register custom roles
-    if ( ! get_role( 'site_manager' ) ) {
-        add_role( 'site_manager', 'Site Manager', array(
-            'read'           => true,
-            'manage_options' => true,
-            // Add only the capabilities this role requires
-        ));
+    // Managed custom roles: the coded list is the source of truth.
+    $managed = array(
+        'site_manager' => array(
+            'name' => 'Site Manager',
+            'caps' => array(
+                'read'           => true,
+                'manage_options' => true,
+                // Add only the capabilities this role requires
+            ),
+        ),
+    );
+
+    foreach ( $managed as $slug => $definition ) {
+        $role = get_role( $slug );
+
+        if ( ! $role ) {
+            add_role( $slug, $definition['name'], $definition['caps'] );
+            continue;
+        }
+
+        // add_role() does nothing for an existing role, so compare and reset.
+        if ( $role->capabilities != $definition['caps'] ) {
+            error_log( "Role {$slug} differed from its coded definition and was reset." );
+            remove_role( $slug );
+            add_role( $slug, $definition['name'], $definition['caps'] );
+        }
     }
 });
 ```
+The comparison runs on every request and writes to the database only when a difference is found. Treat a logged reset as a security event to investigate, not routine noise. Test the reconciliation in staging by adding a capability to the stored role and confirming it is removed.
 
 **Default Value:** Roles are stored in the `wp_options` table and editable via plugins or direct database access.
 
@@ -1431,8 +1530,10 @@ $ stat -c '%U:%G' /path/to/wordpress/wp-includes/version.php
 sudo chown -R wp_user:www-data /path/to/wordpress/
 sudo find /path/to/wordpress/ -type d -exec chmod 750 {} \;
 sudo find /path/to/wordpress/ -type f -exec chmod 640 {} \;
-sudo chmod 400 /path/to/wordpress/wp-config.php
+sudo chmod 440 /path/to/wordpress/wp-config.php
 ```
+
+In this model PHP-FPM runs as `www-data` and reads files through the group, so `wp-config.php` must be group-readable (440). Mode 400 here would make the file unreadable to PHP and take the site down. Confirm with `sudo -u www-data test -r /path/to/wordpress/wp-config.php && echo readable`.
 
 **Model B (shared/managed hosting constraints):**
 
@@ -1458,9 +1559,11 @@ sudo chmod 400 /path/to/wordpress/wp-config.php
 
 **Description:** `wp-config.php` must have the most restrictive file permissions possible. WordPress's official hardening documentation recommends 400 (owner read-only) or 440 (owner and group read-only).
 
-- **400** is preferred when configuration is managed by deployment automation and no runtime process needs write access.
-- **600** may be used temporarily when deployment scripts must write to the file; restore to 400 immediately after.
-- **440** is appropriate only when the PHP-FPM pool runs as a dedicated group and the owning group is that pool's group — never add the web server process user (www-data, nginx, apache) to the file's owning group in a shared-hosting context.
+The PHP process that serves the site must be able to read the file, so choose the mode from the user the PHP-FPM pool actually runs as:
+
+- **400** applies when the PHP-FPM pool runs as the file's owner (for example, a per-site pool user).
+- **440** applies when the pool runs as a different user and reads the file through its group (for example, files owned by `wp_user:www-data` with a `www-data` pool, as in 6.1 Model A). The owning group should contain only that pool's user — never share the group between sites in a shared-hosting context.
+- **600** or **640** may be used temporarily when deployment scripts must write to the file; restore the read-only mode immediately after.
 
 **Rationale:** `wp-config.php` contains database credentials, authentication keys, and security-sensitive configuration. Broad read permissions could expose these to other users on a shared server or to a compromised web server process. Making the file read-only (400/440) ensures it cannot be modified by any process running as the site user, providing an additional layer of integrity protection.
 
@@ -1471,16 +1574,23 @@ sudo chmod 400 /path/to/wordpress/wp-config.php
 ```
 $ stat -c '%a %U:%G' /path/to/wordpress/wp-config.php
 ```
-Verify permissions are 400 or 440 (600 or 640 are acceptable minimums where write access is required), and the owner is not the web server user.
+Verify permissions are 400 or 440 (600 or 640 are acceptable minimums where write access is required), and that the file is not writable by the web server user. Then confirm the serving PHP user can read it:
+```
+$ sudo -u www-data test -r /path/to/wordpress/wp-config.php && echo readable
+```
 
 **Remediation:**
 
+When PHP-FPM runs as a different user than the file owner (6.1 Model A):
 ```bash
-chmod 400 /path/to/wordpress/wp-config.php
+chown wp_user:www-data /path/to/wordpress/wp-config.php
+chmod 440 /path/to/wordpress/wp-config.php
 ```
 
+When PHP-FPM runs as the file owner:
 ```bash
 chown wp_user:wp_user /path/to/wordpress/wp-config.php
+chmod 400 /path/to/wordpress/wp-config.php
 ```
 
 **Default Value:** 644 (world-readable) in many default configurations.
@@ -1960,10 +2070,13 @@ AI tools are increasingly integrated into WordPress workflows for content genera
 
 1. Search the codebase and database for AI service API keys:
 ```bash
-grep -r "sk-" /path/to/wordpress/wp-content/ --include="*.php"
-wp db query "SELECT option_name, option_value FROM wp_options WHERE option_value LIKE '%sk-%' OR option_value LIKE '%key-%'"
+# List file names only (-l); do not print matching lines, which contain the keys.
+grep -rl "sk-" /path/to/wordpress/wp-content/ --include="*.php"
+# Return option names only; do not select option_value.
+wp db query "SELECT option_name FROM $(wp db prefix)options WHERE option_value LIKE '%sk-%' OR option_value LIKE '%key-%'"
 # Run as the WordPress site user, not root.
 ```
+These commands report where possible keys are stored without copying the key values into terminal history, logs, tickets, or AI-assisted sessions.
 2. Verify API keys are defined as constants in `wp-config.php` or loaded from environment variables rather than relying on database-backed connector settings.
 3. Confirm `.gitignore` excludes `wp-config.php` and environment files.
 
@@ -2057,6 +2170,52 @@ Review custom AI integration code for direct output of AI-generated content with
 ---
 
 
+#### 11.4 Ensure Abilities API authorization overrides are reviewed
+
+**Profile Applicability:** **Level 2**
+
+**Assessment Status:** Manual
+
+**Description:** Where the Abilities API is used (WordPress 6.9 and later; client-side integration from 7.0), code that can bypass or override an ability's permission check must be inventoried and reviewed, and every ability exposed to external clients must enforce authorization in its own `permission_callback`.
+
+**Rationale:** Abilities are named operations that AI agents, automation tools, and plugins can discover and run. WordPress 7.1 added execution lifecycle filters that any active plugin or theme can hook. Two of them change authorization outcomes: `wp_pre_execute_ability` can return a result before input validation and the permission check run, and `wp_ability_permission_result` can turn a denial from the ability's own `permission_callback` into an allow. WordPress 7.1 also added a `public` metadata flag that controls whether an ability is exposed to external clients such as the REST API. That flag, like `show_in_rest`, controls discovery and exposure only; the core dev note states that exposure flags must not be treated as a security boundary.
+
+**Impact:** Requires a code inventory when plugins are added or updated. No runtime impact.
+
+**Audit:**
+
+This is a manual check.
+
+1. Find code that hooks the authorization-affecting filters:
+```
+$ grep -rnE "wp_pre_execute_ability|wp_ability_permission_result" /path/to/wordpress/wp-content/ --include="*.php"
+```
+Review each match. A callback on `wp_ability_permission_result` that can return `true`, or a callback on `wp_pre_execute_ability` that returns a result, must make its own equivalent authorization decision and have a documented reason.
+
+2. List the abilities exposed through the REST API, as an authenticated administrator (for example, with an application password belonging to a dedicated audit account):
+```
+$ curl -s -u audit-user:APPLICATION-PASSWORD https://example.com/wp-json/wp-abilities/v1/abilities
+```
+For each exposed ability, confirm the registering code supplies a `permission_callback` that checks a capability appropriate to what the ability does. A callback that only returns `true`, or only checks that the user is logged in, is a finding unless the ability returns non-sensitive data.
+
+3. Confirm that logging attached to `wp_ability_invoked` does not record raw input. The action fires before validation and receives unfiltered input, which may contain secrets or personal data.
+
+**Remediation:**
+
+Remove or correct authorization overrides that are not justified. Add or tighten the `permission_callback` on each exposed ability. For abilities that should not be available to external clients, leave `public` unset (it defaults to `false`) and do not set `show_in_rest`. Give AI agents and automation tools a dedicated least-privilege account rather than an administrator's credentials (see 11.3).
+
+**Default Value:** Abilities are not exposed to external clients unless `public` or `show_in_rest` is set.
+
+
+**References:**
+
+- [New execution lifecycle filters for the Abilities API in WordPress 7.1](https://make.wordpress.org/core/2026/07/29/new-execution-lifecycle-filters-for-the-abilities-api-in-wordpress-7-1/)
+- [A unified public exposure flag for abilities in WordPress 7.1](https://make.wordpress.org/core/2026/08/04/a-unified-public-exposure-flag-for-abilities-in-wordpress-7-1/)
+- [Abilities API improvements in WordPress 7.1](https://make.wordpress.org/core/2026/07/31/abilities-api-improvements-in-wordpress-7-1/)
+
+---
+
+
 ## 12.0 Server Access and Network
 
 This section addresses secure remote access to the server hosting WordPress and host-level network controls.
@@ -2075,23 +2234,29 @@ This section addresses secure remote access to the server hosting WordPress and 
 
 **Audit:**
 
+Read the effective configuration, which includes `Include` files and defaults that a search of `sshd_config` misses:
 ```
-$ grep -E 'PasswordAuthentication|PubkeyAuthentication' /etc/ssh/sshd_config
+$ sudo sshd -T | grep -Ei '^(passwordauthentication|kbdinteractiveauthentication|pubkeyauthentication|authenticationmethods) '
 ```
-Verify: `PasswordAuthentication no` and `PubkeyAuthentication yes`.
+Verify: `passwordauthentication no`, `kbdinteractiveauthentication no`, and `pubkeyauthentication yes`. If the configuration uses `Match` blocks, repeat for the relevant context (for example, `sudo sshd -T -C user=deploy,host=example.com,addr=203.0.113.10`).
 
 **Remediation:**
 
 In `/etc/ssh/sshd_config`:
 ```
 PasswordAuthentication no
+KbdInteractiveAuthentication no
 PubkeyAuthentication yes
 PermitRootLogin no
 ```
-Restart the SSH service:
+`PasswordAuthentication no` alone does not close password logins that PAM offers through keyboard-interactive authentication. Where an approved design combines keys with a one-time code through PAM, keep keyboard-interactive enabled and require both with `AuthenticationMethods publickey,keyboard-interactive`.
+
+Validate the configuration, then restart the SSH service:
 ```
+$ sudo sshd -t
 $ sudo systemctl restart sshd
 ```
+Confirm a new key-based session connects before closing the existing one.
 
 **Default Value:** Password authentication is enabled by default on most Linux distributions.
 
@@ -2377,6 +2542,7 @@ The following table summarizes all recommendations in this benchmark.
 | 11.1 | Ensure AI API keys are securely stored               | L1        | Automated      |
 | 11.2 | Ensure AI-generated content is sanitized             | L1        | Manual         |
 | 11.3 | Ensure AI tool usage is governed by policy           | L2        | Manual         |
+| 11.4 | Ensure Abilities API authorization overrides are reviewed | L2   | Manual         |
 | 12.1 | Ensure SSH key-based authentication is enforced     | L1        | Automated      |
 | 12.2 | Ensure SFTP is used and FTP is disabled             | L1        | Automated      |
 | 12.3 | Ensure a host-based firewall is configured          | L1        | Automated      |

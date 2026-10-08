@@ -4,6 +4,28 @@ All notable changes to the WordPress Security Benchmark.
 
 ## Unreleased
 
+### Fixed
+- Corrected findings from the 2026-10-07 documentation review and verification round. Recorded in `ai-assisted-docs/reviews/rounds/2026-10-07/`.
+- §2: PHP audits query the PHP-FPM runtime and its pool overrides instead of the CLI interpreter.
+- §4.4: `xmlrpc_enabled` is described as a partial measure; the audit uses a POST request; the `system.multicall` amplification rationale is marked historical (fixed in WordPress 4.4).
+- §5.4: replaced the users-route remediation, which removed the routes for every non-administrator, with a tested snippet that requires authentication for reads and preserves core's permission checks.
+- §5.8: rationale no longer claims code-defined roles resist database tampering; added a tested reconciliation example.
+- §1.4: stated Nginx location ordering and added a behavioral audit. §1.5: covered `?rest_route=` requests.
+- §5.1: audit checks enrollment and enforcement. §5.3: control scoped to maximum session lifetime, with the other measures named as separate.
+- §6.1–6.2: `wp-config.php` mode follows the PHP-FPM pool user (440 in Model A).
+- §4.6 and §11.1: audits no longer print salts, keys, or option values.
+- §12.1: closes keyboard-interactive password authentication and audits the effective SSH configuration.
+- §3.1: uses `REVOKE ALL PRIVILEGES, GRANT OPTION FROM`.
+
+### Added
+- Control 11.4, *Ensure Abilities API authorization overrides are reviewed* (Level 2, Manual), covering the WordPress 7.1 lifecycle filters and `public` exposure flag. The Benchmark now has 51 controls.
+- §1.2: note on `worker-src` and WordPress 7.1 client-side media processing.
+
+### Changed
+- Target Technology names WordPress 7.1.3 as current (October 7, 2026), states the support policy, and notes that 7.2 (scheduled December 8, 2026) is not covered. Reviewed for 7.1 changes.
+- `CONTRIBUTING.md` describes the current manual build and release flow. `CLAUDE.md` uses portable command names.
+- Updated `docs/current-metrics.md` for the above.
+
 ## 1.1.1 — 2026-06-17
 
 ### Added
