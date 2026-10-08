@@ -2,22 +2,22 @@
 
 This file is the single source of truth for architectural counts in the WordPress Security Benchmark. Check this file before writing any count in prose, and update it when adding or removing controls, sections, or structural elements.
 
-Last verified: 2026-06-14
+Last verified: 2026-10-07
 
 ## Architectural Facts
 
 | Fact | Value | Verification command | Last changed |
 |---|---:|---|---|
-| Document lines | 2,424 | `wc -l WordPress-Security-Benchmark.md` | 2026-06-14 |
+| Document lines | 2,590 | `wc -l WordPress-Security-Benchmark.md` | 2026-10-07 |
 | Major sections (H2) | 22 | `grep -cE '^## ' WordPress-Security-Benchmark.md` | v1.0 |
-| Security controls | 50 | `grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | v1.0 |
-| Audit sections | 50 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` | v1.0 |
-| Remediation sections | 50 | `grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md` | v1.0 |
-| Code fences (total) | 250 | `grep -c '^\`\`\`' WordPress-Security-Benchmark.md` | v1.0 |
-| Opening fences (with language tag) | 34 | `grep -cE '^\`\`\`[a-z]' WordPress-Security-Benchmark.md` | v1.0 |
+| Security controls | 51 | `grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | 2026-10-07 |
+| Audit sections | 51 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` | 2026-10-07 |
+| Remediation sections | 51 | `grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md` | 2026-10-07 |
+| Code fences (total) | 260 | `grep -c '^\`\`\`' WordPress-Security-Benchmark.md` | 2026-10-07 |
+| Opening fences (with language tag) | 35 | `grep -cE '^\`\`\`[a-z]' WordPress-Security-Benchmark.md` | 2026-10-07 |
 | Opening fences (with raw attribute tag) | 2 | `grep -cE '^\`\`\`\{' WordPress-Security-Benchmark.md` | v1.0 |
-| Bare closing fences | 214 | `grep -cE '^\`\`\`$' WordPress-Security-Benchmark.md` | v1.0 |
-| Table rows | 63 | `grep -cE '^\| ' WordPress-Security-Benchmark.md` | v1.0 |
+| Bare closing fences | 223 | `grep -cE '^\`\`\`$' WordPress-Security-Benchmark.md` | 2026-10-07 |
+| Table rows | 64 | `grep -cE '^\| ' WordPress-Security-Benchmark.md` | 2026-10-07 |
 | WP-CLI commands | 4 | `grep -cE '^\s*wp ' WordPress-Security-Benchmark.md` | v1.0 |
 | `[CUSTOMIZE: ...]` placeholders | 2 | `grep -c '\[CUSTOMIZE:' WordPress-Security-Benchmark.md` | v1.0 |
 | Output formats | 4 | Markdown, DOCX, EPUB, PDF | v1.0 |
@@ -28,7 +28,7 @@ Last verified: 2026-06-14
 |---|---:|---|
 | PHP | 13 | `grep -c '^\`\`\`php' WordPress-Security-Benchmark.md` |
 | Bash | 6 | `grep -c '^\`\`\`bash' WordPress-Security-Benchmark.md` |
-| Nginx | 5 | `grep -c '^\`\`\`nginx' WordPress-Security-Benchmark.md` |
+| Nginx | 6 | 2026-10-07 |
 | SQL | 5 | `grep -c '^\`\`\`sql' WordPress-Security-Benchmark.md` |
 | Apache | 4 | `grep -c '^\`\`\`apache' WordPress-Security-Benchmark.md` |
 | INI | 1 | `grep -c '^\`\`\`ini' WordPress-Security-Benchmark.md` |
