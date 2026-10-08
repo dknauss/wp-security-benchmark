@@ -5,6 +5,9 @@ All notable changes to the WordPress Security Benchmark.
 ## Unreleased
 
 ### Fixed
+- Control 11.4: corrected after verification against WordPress 7.1.3 core. `wp_pre_execute_ability` bypasses the permission check only for direct PHP execution, not on the REST run endpoint; `wp_ability_permission_result` can allow even unauthenticated REST runs; `wp_ability_invoked` does not fire for REST-rejected requests. Added verified default values.
+
+### Fixed
 - Corrected findings from the 2026-10-07 documentation review and verification round. Recorded in `ai-assisted-docs/reviews/rounds/2026-10-07/`.
 - §2: PHP audits query the PHP-FPM runtime and its pool overrides instead of the CLI interpreter.
 - §4.4: `xmlrpc_enabled` is described as a partial measure; the audit uses a POST request; the `system.multicall` amplification rationale is marked historical (fixed in WordPress 4.4).
