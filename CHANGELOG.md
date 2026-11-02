@@ -8,6 +8,7 @@ All notable changes to the WordPress Security Benchmark.
 - Control 5.9, *Ensure public author identities do not disclose login names or email addresses* (Level 1, Automated). Control 5.4 closes the routes that list accounts, but WordPress still derives `display_name`, `nickname` and `user_nicename` from the login, so an email-address login appears in bylines, feeds, oEmbed, comments and author URLs. Adds an audit that prints account IDs only, a per-account fix, and a `wp_pre_insert_user_data` must-use plugin. The Benchmark now has 52 controls.
 
 ### Changed
+- Regenerated the PDF, DOCX and EPUB files from the current Markdown, so they include control 5.9 and the control 5.2 changes.
 - Control 5.2: administrator accounts must not publish or comment while logged in, and each person who publishes gets an Author or Editor account. Adds an audit that counts published content by administrators and a WP-CLI step that reassigns it.
 
 ### Fixed
