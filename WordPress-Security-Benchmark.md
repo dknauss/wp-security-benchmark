@@ -1490,6 +1490,87 @@ The comparison runs on every request and writes to the database only when a diff
 ---
 
 
+#### 5.9 Ensure public author identities do not disclose login names or email addresses
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Automated
+
+**Description:** Each account's display name, which WordPress publishes as the byline, and its nicename, the slug in author URLs, should not be derived from the account's login name or email address. Treat the login as a private credential, the display name as the public byline, and the slug as a URL built from the byline.
+
+**Rationale:** Control 5.4 closes the routes that list accounts. It does not change the data those routes and others publish. When no first or last name is supplied, which covers every self-registration, `wp_insert_user()` sets `display_name` and `nickname` to `user_login`, and it always derives `user_nicename` from `user_login` (`dan@example.com` becomes `danexample-com`). The display name is then printed in theme bylines, RSS `<dc:creator>` and Atom `<author>`, oEmbed `author_name`, the REST users `name` field, and the name on every comment the account posts while logged in. The nicename appears in author URLs, the REST users `slug` field, and the `comment-author-{nicename}` class on those comments. An email address is the most damaging case: WordPress has accepted an account's email address in place of its username at login since version 4.5, so a published address is always a valid login identifier as well as personal data and a lookup key for breached-password lists. Email addresses remain acceptable as login names; the OWASP Authentication Cheat Sheet recommends allowing them. The defect is publishing one.
+
+**Impact:** Changing a nicename changes that author's archive URL. Do not redirect the old slug to the new one, because a redirect confirms that an account with the old, email-derived slug exists. The old URL should respond exactly as an unknown author does. Changing a display name does not update comments already posted, which store a copy of the name in `comment_author`; update those separately if required.
+
+**Audit:**
+
+List the IDs of accounts whose display name or nicename is derived from their login or email address. The command prints account IDs only, never addresses:
+```bash
+$ wp eval 'foreach ( get_users( array( "fields" => array( "ID", "user_login", "user_email", "user_nicename", "display_name" ) ) ) as $u ) {
+    $e = strtolower( $u->user_email );
+    $x = array_filter( array( strtolower( $u->user_login ), $e, strstr( $e, "@", true ) ) );
+    $d = array_map( "sanitize_title", $x );
+    $n = strtolower( trim( $u->display_name ) );
+    $s = $u->user_nicename;
+    if ( in_array( $n, $x, true ) || preg_match( "/\S+@\S+/", $n ) || in_array( $s, $d, true ) || in_array( preg_replace( "/-\d+$/", "", $s ), $d, true ) ) {
+        echo $u->ID, PHP_EOL;
+    }
+}' --path=/path/to/wordpress
+```
+Any output is a finding. Also confirm that administrator accounts do not publish content (see 5.2); publishing accounts should hold the Author or Editor role.
+
+**Remediation:**
+
+Fix each listed account. For example:
+```bash
+$ wp user update <ID> --display_name="Dan Knauss" --user_nicename="dan-knauss" --path=/path/to/wordpress
+```
+Then prevent new and updated accounts from reintroducing the problem with a must-use plugin (`wp-content/mu-plugins/public-identity.php`). It replaces an exposed display name with the account's first and last name, or a neutral generated name, and replaces an exposed slug with one built from the display name, or a random one if that is taken:
+```php
+add_filter( 'wp_pre_insert_user_data', function ( $data, $update, $user_id, $userdata ) {
+    $email   = strtolower( $data['user_email'] );
+    $exposed = array_filter( array( strtolower( $data['user_login'] ), $email, strstr( $email, '@', true ) ) );
+    $derived = array_map( 'sanitize_title', $exposed );
+
+    // Display name: never the login, the email, its local part, or anything email-shaped.
+    $name = strtolower( trim( $data['display_name'] ) );
+    if ( in_array( $name, $exposed, true ) || preg_match( '/\S+@\S+/', $name ) ) {
+        $first = isset( $userdata['first_name'] ) ? trim( $userdata['first_name'] ) : '';
+        $last  = isset( $userdata['last_name'] ) ? trim( $userdata['last_name'] ) : '';
+        $full  = trim( $first . ' ' . $last );
+        $data['display_name'] = '' !== $full ? $full : 'Contributor ' . strtoupper( wp_generate_password( 4, false ) );
+    }
+
+    // Slug: never derived from the login or email, including core's -N collision suffix.
+    $base = preg_replace( '/-\d+$/', '', $data['user_nicename'] );
+    if ( in_array( $data['user_nicename'], $derived, true ) || in_array( $base, $derived, true ) ) {
+        $slug  = mb_substr( sanitize_title( $data['display_name'] ), 0, 50 );
+        $owner = '' !== $slug ? get_user_by( 'slug', $slug ) : false;
+        if ( '' === $slug || in_array( $slug, $derived, true ) || ( $owner && (int) $owner->ID !== (int) $user_id ) ) {
+            $slug = strtolower( wp_generate_password( 10, false ) );
+        }
+        $data['user_nicename'] = $slug;
+    }
+
+    return $data;
+}, 10, 4 );
+```
+The filter runs on every account insert and update, including self-registration and profile saves. It does not change accounts that are never saved again, so run the audit and fix existing accounts as well.
+
+**Default Value:** `display_name` and `nickname` default to `user_login` when no first or last name is supplied, and `user_nicename` is always derived from `user_login`.
+
+
+**References:**
+
+- [OWASP Authentication Cheat Sheet — Usernames](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [OWASP ASVS 5.0 — V14 Data Protection (14.2.6)](https://github.com/OWASP/ASVS/blob/master/5.0/en/0x23-V14-Data-Protection.md)
+- [GDPR Article 25 — Data protection by design and by default](https://gdpr-info.eu/art-25-gdpr/)
+- [`wp_insert_user()` Function Reference](https://developer.wordpress.org/reference/functions/wp_insert_user/)
+- [`wp_pre_insert_user_data` Hook Reference](https://developer.wordpress.org/reference/hooks/wp_pre_insert_user_data/)
+
+---
+
+
 ## 6.0 File System Permissions
 
 This section covers file ownership and permission settings for the WordPress installation.
@@ -2534,6 +2615,7 @@ The following table summarizes all recommendations in this benchmark.
 | 5.6  | Ensure REST API exposure is intentionally scoped    | L2        | Automated      |
 | 5.7  | Ensure strong password policy is enforced          | L1        | Manual         |
 | 5.8  | Ensure roles and capabilities are defined in code   | L2        | Manual         |
+| 5.9  | Ensure author identities do not disclose logins     | L1        | Automated      |
 | 6.1  | Ensure file ownership model is least-privilege      | L2        | Automated      |
 | 6.2  | Ensure `wp-config.php` has restrictive permissions    | L1        | Automated      |
 | 6.3  | Ensure `wp-config.php` is above document root         | L2        | Manual         |
