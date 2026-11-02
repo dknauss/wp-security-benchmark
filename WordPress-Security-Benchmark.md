@@ -1518,10 +1518,16 @@ List the IDs of accounts whose display name or nicename is derived from their lo
 $ wp eval 'foreach ( get_users( array( "fields" => array( "ID", "user_login", "user_email", "user_nicename", "display_name" ) ) ) as $u ) {
     $e = strtolower( $u->user_email );
     $x = array_filter( array( strtolower( $u->user_login ), $e, strstr( $e, "@", true ) ) );
-    $d = array_map( "sanitize_title", $x );
     $n = strtolower( trim( $u->display_name ) );
     $s = $u->user_nicename;
-    if ( in_array( $n, $x, true ) || preg_match( "/\S+@\S+/", $n ) || in_array( $s, $d, true ) || in_array( preg_replace( "/-\d+$/", "", $s ), $d, true ) ) {
+    $b = preg_replace( "/-\d+$/", "", $s );
+    $hit = in_array( $n, $x, true ) || preg_match( "/\S+@\S+/", $n );
+    foreach ( $x as $v ) {
+        foreach ( array( sanitize_title( $v ), sanitize_title( mb_substr( $v, 0, 50 ) ) ) as $d ) {
+            $hit = $hit || $s === $d || $b === $d || ( strlen( $b ) >= 40 && 0 === strpos( $d, $b ) );
+        }
+    }
+    if ( $hit ) {
         echo $u->ID, PHP_EOL;
     }
 }' --path=/path/to/wordpress
@@ -1541,23 +1547,42 @@ add_filter( 'wp_pre_insert_user_data', function ( $data, $update, $user_id, $use
     $login   = isset( $data['user_login'] ) ? $data['user_login'] : get_userdata( $user_id )->user_login;
     $email   = strtolower( $data['user_email'] );
     $exposed = array_filter( array( strtolower( $login ), $email, strstr( $email, '@', true ) ) );
-    $derived = array_map( 'sanitize_title', $exposed );
+
+    // Core derives the default slug from the first 50 characters, so compare both forms.
+    $derived = array();
+    foreach ( $exposed as $value ) {
+        $derived[] = sanitize_title( $value );
+        $derived[] = sanitize_title( mb_substr( $value, 0, 50 ) );
+    }
+
+    $name_exposed = function ( $name ) use ( $exposed ) {
+        $name = strtolower( trim( $name ) );
+        return in_array( $name, $exposed, true ) || preg_match( '/\S+@\S+/', $name );
+    };
+    $slug_exposed = function ( $slug ) use ( $derived ) {
+        // Strip core's -N collision suffix; a shortened base can be a prefix of the derivation.
+        $base = preg_replace( '/-\d+$/', '', $slug );
+        foreach ( $derived as $value ) {
+            if ( $slug === $value || $base === $value || ( strlen( $base ) >= 40 && 0 === strpos( $value, $base ) ) ) {
+                return true;
+            }
+        }
+        return false;
+    };
 
     // Display name: never the login, the email, its local part, or anything email-shaped.
-    $name = strtolower( trim( $data['display_name'] ) );
-    if ( in_array( $name, $exposed, true ) || preg_match( '/\S+@\S+/', $name ) ) {
+    if ( $name_exposed( $data['display_name'] ) ) {
         $first = isset( $userdata['first_name'] ) ? trim( $userdata['first_name'] ) : '';
         $last  = isset( $userdata['last_name'] ) ? trim( $userdata['last_name'] ) : '';
         $full  = trim( $first . ' ' . $last );
-        $data['display_name'] = '' !== $full ? $full : 'Contributor ' . strtoupper( wp_generate_password( 4, false ) );
+        $data['display_name'] = ( '' !== $full && ! $name_exposed( $full ) ) ? $full : 'Contributor ' . strtoupper( wp_generate_password( 4, false ) );
     }
 
-    // Slug: never derived from the login or email, including core's -N collision suffix.
-    $base = preg_replace( '/-\d+$/', '', $data['user_nicename'] );
-    if ( in_array( $data['user_nicename'], $derived, true ) || in_array( $base, $derived, true ) ) {
+    // Slug: never derived from the login or email.
+    if ( $slug_exposed( $data['user_nicename'] ) ) {
         $slug  = mb_substr( sanitize_title( $data['display_name'] ), 0, 50 );
         $owner = '' !== $slug ? get_user_by( 'slug', $slug ) : false;
-        if ( '' === $slug || in_array( $slug, $derived, true ) || ( $owner && (int) $owner->ID !== (int) $user_id ) ) {
+        if ( '' === $slug || $slug_exposed( $slug ) || ( $owner && (int) $owner->ID !== (int) $user_id ) ) {
             $slug = strtolower( wp_generate_password( 10, false ) );
         }
         $data['user_nicename'] = $slug;
