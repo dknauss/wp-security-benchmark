@@ -1537,8 +1537,10 @@ $ wp user update <ID> --display_name="Dan Knauss" --user_nicename="dan-knauss" -
 Then prevent new and updated accounts from reintroducing the problem with a must-use plugin (`wp-content/mu-plugins/public-identity.php`). It replaces an exposed display name with the account's first and last name, or a neutral generated name, and replaces an exposed slug with one built from the display name, or a random one if that is taken:
 ```php
 add_filter( 'wp_pre_insert_user_data', function ( $data, $update, $user_id, $userdata ) {
+    // Core leaves user_login out of $data on updates.
+    $login   = isset( $data['user_login'] ) ? $data['user_login'] : get_userdata( $user_id )->user_login;
     $email   = strtolower( $data['user_email'] );
-    $exposed = array_filter( array( strtolower( $data['user_login'] ), $email, strstr( $email, '@', true ) ) );
+    $exposed = array_filter( array( strtolower( $login ), $email, strstr( $email, '@', true ) ) );
     $derived = array_map( 'sanitize_title', $exposed );
 
     // Display name: never the login, the email, its local part, or anything email-shaped.
