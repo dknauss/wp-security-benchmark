@@ -1120,9 +1120,9 @@ Recommended: Enforce 2FA as mandatory for admin roles with a grace period for in
 
 **Assessment Status:** Manual
 
-**Description:** The number of user accounts with the Administrator role should be limited to the minimum required. A primary administrator account should be reserved for emergency use only. Administrator account usernames must not use easily guessed values such as `admin`, `administrator`, or `webmaster`, which are the first targets of automated brute-force attacks.
+**Description:** The number of user accounts with the Administrator role should be limited to the minimum required. A primary administrator account should be reserved for emergency use only. Administrator account usernames must not use easily guessed values such as `admin`, `administrator`, or `webmaster`, which are the first targets of automated brute-force attacks. Administrator accounts must not publish content or comment while logged in. Whoever publishes gets an Author or Editor account.
 
-**Rationale:** Each administrator account is a potential entry point. Compromising any single admin account grants full site control. Minimizing admin accounts reduces the attack surface. Default or predictable usernames make brute-force and credential-stuffing attacks significantly easier.
+**Rationale:** Each administrator account is a potential entry point. Compromising any single admin account grants full site control. Minimizing admin accounts reduces the attack surface. Default or predictable usernames make brute-force and credential-stuffing attacks significantly easier. Publishing makes an account visible: its display name appears in bylines, feeds and comments, and its slug in author URLs (see 5.9). When the publishing account is an administrator, every post advertises the account most worth attacking. When publishing is done from a lower-privilege account, an exposed identity leads to an account that cannot take over the site.
 
 **Impact:** Concentrates administrative privileges among fewer users. Operations that require administrator access may experience delays if authorized personnel are not immediately available.
 
@@ -1132,6 +1132,11 @@ Recommended: Enforce 2FA as mandatory for admin roles with a grace period for in
 $ wp user list --role=administrator --fields=ID,user_login,user_email --path=/path/to/wordpress
 ```
 Review the list. Verify that each admin account is actively needed and assigned to a specific individual.
+
+Count published content authored by administrator accounts. Any result above zero is a finding:
+```
+$ wp post list --author="$(wp user list --role=administrator --format=ids --path=/path/to/wordpress | tr ' ' ',')" --post_type=any --post_status=publish --format=count --path=/path/to/wordpress
+```
 
 **Remediation:**
 
@@ -1144,6 +1149,10 @@ $ wp user delete <old-user-id> --reassign=<new-user-id> --yes --path=/path/to/wo
 3\. Downgrade accounts that don't require full admin capabilities to Editor or a custom role.
 4\. Reserve one primary administrator account for break-glass emergencies.
 5\. Use custom roles with tailored capabilities for day-to-day operations.
+6\. Give each person who publishes a separate Author or Editor account, and reassign content that administrator accounts published:
+```
+$ wp post update $(wp post list --author=<admin-user-id> --post_type=any --format=ids --path=/path/to/wordpress) --post_author=<author-user-id> --path=/path/to/wordpress
+```
 
 **Default Value:** One administrator account is created during installation.
 
@@ -1486,6 +1495,114 @@ The comparison runs on every request and writes to the database only when a diff
 - [WordPress Roles and Capabilities](https://developer.wordpress.org/plugins/users/roles-and-capabilities/)
 - [`WP_Roles::add_cap()` Class Reference](https://developer.wordpress.org/reference/classes/wp_roles/add_cap/)
 - [`WP_Role::add_cap()` Class Reference](https://developer.wordpress.org/reference/classes/wp_role/add_cap/)
+
+---
+
+
+#### 5.9 Ensure public author identities do not disclose login names or email addresses
+
+**Profile Applicability:** **Level 1**
+
+**Assessment Status:** Automated
+
+**Description:** Each account's display name, which WordPress publishes as the byline, and its nicename, the slug in author URLs, should not be derived from the account's login name or email address. Treat the login as a private credential, the display name as the public byline, and the slug as a URL built from the byline.
+
+**Rationale:** Control 5.4 closes the routes that list accounts. It does not change the data those routes and others publish. When no first or last name is supplied, which covers every self-registration, `wp_insert_user()` sets `display_name` and `nickname` to `user_login`, and it always derives `user_nicename` from `user_login` (`dan@example.com` becomes `danexample-com`). The display name is then printed in theme bylines, RSS `<dc:creator>` and Atom `<author>`, oEmbed `author_name`, the REST users `name` field, and the name on every comment the account posts while logged in. The nicename appears in author URLs, the REST users `slug` field, and the `comment-author-{nicename}` class on those comments. An email address is the most damaging case: WordPress has accepted an account's email address in place of its username at login since version 4.5, so a published address is always a valid login identifier as well as personal data and a lookup key for breached-password lists. Email addresses remain acceptable as login names; the OWASP Authentication Cheat Sheet recommends allowing them. The defect is publishing one.
+
+**Impact:** Changing a nicename changes that author's archive URL. Do not redirect the old slug to the new one, because a redirect confirms that an account with the old, email-derived slug exists. The old URL should respond exactly as an unknown author does. Changing a display name does not update comments already posted, which store a copy of the name in `comment_author`; update those separately if required.
+
+**Audit:**
+
+List the IDs of accounts whose display name or nicename is derived from their login or email address. The command prints account IDs only, never addresses:
+```bash
+$ wp eval 'foreach ( get_users( array( "fields" => array( "ID", "user_login", "user_email", "user_nicename", "display_name" ) ) ) as $u ) {
+    $e = strtolower( $u->user_email );
+    $x = array_filter( array( strtolower( $u->user_login ), $e, strstr( $e, "@", true ) ) );
+    $n = strtolower( trim( $u->display_name ) );
+    $s = $u->user_nicename;
+    $b = preg_replace( "/-\d+$/", "", $s );
+    $hit = in_array( $n, $x, true ) || preg_match( "/\S+@\S+/", $n );
+    foreach ( $x as $v ) {
+        foreach ( array( sanitize_title( $v ), sanitize_title( mb_substr( $v, 0, 50 ) ) ) as $d ) {
+            $hit = $hit || $s === $d || $b === $d || ( strlen( $b ) >= 40 && 0 === strpos( $d, $b ) );
+        }
+    }
+    if ( $hit ) {
+        echo $u->ID, PHP_EOL;
+    }
+}' --path=/path/to/wordpress
+```
+Any output is a finding. Also confirm that administrator accounts do not publish content (see 5.2); publishing accounts should hold the Author or Editor role.
+
+**Remediation:**
+
+Fix each listed account. For example:
+```bash
+$ wp user update <ID> --display_name="Dan Knauss" --user_nicename="dan-knauss" --path=/path/to/wordpress
+```
+Then prevent new and updated accounts from reintroducing the problem with a must-use plugin (`wp-content/mu-plugins/public-identity.php`). It replaces an exposed display name with the account's first and last name, or a neutral generated name, and replaces an exposed slug with one built from the display name, or a random one if that is taken:
+```php
+add_filter( 'wp_pre_insert_user_data', function ( $data, $update, $user_id, $userdata ) {
+    // Core leaves user_login out of $data on updates.
+    $login   = isset( $data['user_login'] ) ? $data['user_login'] : get_userdata( $user_id )->user_login;
+    $email   = strtolower( $data['user_email'] );
+    $exposed = array_filter( array( strtolower( $login ), $email, strstr( $email, '@', true ) ) );
+
+    // Core derives the default slug from the first 50 characters, so compare both forms.
+    $derived = array();
+    foreach ( $exposed as $value ) {
+        $derived[] = sanitize_title( $value );
+        $derived[] = sanitize_title( mb_substr( $value, 0, 50 ) );
+    }
+
+    $name_exposed = function ( $name ) use ( $exposed ) {
+        $name = strtolower( trim( $name ) );
+        return in_array( $name, $exposed, true ) || preg_match( '/\S+@\S+/', $name );
+    };
+    $slug_exposed = function ( $slug ) use ( $derived ) {
+        // Strip core's -N collision suffix; a shortened base can be a prefix of the derivation.
+        $base = preg_replace( '/-\d+$/', '', $slug );
+        foreach ( $derived as $value ) {
+            if ( $slug === $value || $base === $value || ( strlen( $base ) >= 40 && 0 === strpos( $value, $base ) ) ) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    // Display name: never the login, the email, its local part, or anything email-shaped.
+    if ( $name_exposed( $data['display_name'] ) ) {
+        $first = isset( $userdata['first_name'] ) ? trim( $userdata['first_name'] ) : '';
+        $last  = isset( $userdata['last_name'] ) ? trim( $userdata['last_name'] ) : '';
+        $full  = trim( $first . ' ' . $last );
+        $data['display_name'] = ( '' !== $full && ! $name_exposed( $full ) ) ? $full : 'Contributor ' . strtoupper( wp_generate_password( 4, false ) );
+    }
+
+    // Slug: never derived from the login or email.
+    if ( $slug_exposed( $data['user_nicename'] ) ) {
+        $slug  = mb_substr( sanitize_title( $data['display_name'] ), 0, 50 );
+        $owner = '' !== $slug ? get_user_by( 'slug', $slug ) : false;
+        if ( '' === $slug || $slug_exposed( $slug ) || ( $owner && (int) $owner->ID !== (int) $user_id ) ) {
+            $slug = strtolower( wp_generate_password( 10, false ) );
+        }
+        $data['user_nicename'] = $slug;
+    }
+
+    return $data;
+}, 10, 4 );
+```
+The filter runs on every account insert and update, including self-registration and profile saves. It does not change accounts that are never saved again, so run the audit and fix existing accounts as well.
+
+**Default Value:** `display_name` and `nickname` default to `user_login` when no first or last name is supplied, and `user_nicename` is always derived from `user_login`.
+
+
+**References:**
+
+- [OWASP Authentication Cheat Sheet — Usernames](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
+- [OWASP ASVS 5.0 — V14 Data Protection (14.2.6)](https://github.com/OWASP/ASVS/blob/master/5.0/en/0x23-V14-Data-Protection.md)
+- [GDPR Article 25 — Data protection by design and by default](https://gdpr-info.eu/art-25-gdpr/)
+- [`wp_insert_user()` Function Reference](https://developer.wordpress.org/reference/functions/wp_insert_user/)
+- [`wp_pre_insert_user_data` Hook Reference](https://developer.wordpress.org/reference/hooks/wp_pre_insert_user_data/)
 
 ---
 
@@ -2534,6 +2651,7 @@ The following table summarizes all recommendations in this benchmark.
 | 5.6  | Ensure REST API exposure is intentionally scoped    | L2        | Automated      |
 | 5.7  | Ensure strong password policy is enforced          | L1        | Manual         |
 | 5.8  | Ensure roles and capabilities are defined in code   | L2        | Manual         |
+| 5.9  | Ensure author identities do not disclose logins     | L1        | Automated      |
 | 6.1  | Ensure file ownership model is least-privilege      | L2        | Automated      |
 | 6.2  | Ensure `wp-config.php` has restrictive permissions    | L1        | Automated      |
 | 6.3  | Ensure `wp-config.php` is above document root         | L2        | Manual         |
