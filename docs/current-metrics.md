@@ -8,15 +8,15 @@ Last verified: 2026-11-02
 
 | Fact | Value | Verification command | Last changed |
 |---|---:|---|---|
-| Document lines | 2,679 | `wc -l WordPress-Security-Benchmark.md` | 2026-11-02 |
+| Document lines | 2,688 | `wc -l WordPress-Security-Benchmark.md` | 2026-11-02 |
 | Major sections (H2) | 22 | `grep -cE '^## ' WordPress-Security-Benchmark.md` | v1.0 |
 | Security controls | 52 | `grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | 2026-11-02 |
 | Audit sections | 52 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` | 2026-11-02 |
 | Remediation sections | 52 | `grep -c '\*\*Remediation:\*\*' WordPress-Security-Benchmark.md` | 2026-11-02 |
-| Code fences (total) | 268 | `grep -c '^\`\`\`' WordPress-Security-Benchmark.md` | 2026-11-02 |
+| Code fences (total) | 272 | `grep -c '^\`\`\`' WordPress-Security-Benchmark.md` | 2026-11-02 |
 | Opening fences (with language tag) | 38 | `grep -cE '^\`\`\`[a-z]' WordPress-Security-Benchmark.md` | 2026-11-02 |
 | Opening fences (with raw attribute tag) | 2 | `grep -cE '^\`\`\`\{' WordPress-Security-Benchmark.md` | v1.0 |
-| Bare closing fences | 228 | `grep -cE '^\`\`\`$' WordPress-Security-Benchmark.md` | 2026-11-02 |
+| Bare closing fences | 232 | `grep -cE '^\`\`\`$' WordPress-Security-Benchmark.md` | 2026-11-02 |
 | Table rows | 65 | `grep -cE '^\| ' WordPress-Security-Benchmark.md` | 2026-10-07 |
 | WP-CLI commands | 4 | `grep -cE '^\s*wp ' WordPress-Security-Benchmark.md` | v1.0 |
 | `[CUSTOMIZE: ...]` placeholders | 2 | `grep -c '\[CUSTOMIZE:' WordPress-Security-Benchmark.md` | v1.0 |

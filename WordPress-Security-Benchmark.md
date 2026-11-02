@@ -1120,9 +1120,9 @@ Recommended: Enforce 2FA as mandatory for admin roles with a grace period for in
 
 **Assessment Status:** Manual
 
-**Description:** The number of user accounts with the Administrator role should be limited to the minimum required. A primary administrator account should be reserved for emergency use only. Administrator account usernames must not use easily guessed values such as `admin`, `administrator`, or `webmaster`, which are the first targets of automated brute-force attacks.
+**Description:** The number of user accounts with the Administrator role should be limited to the minimum required. A primary administrator account should be reserved for emergency use only. Administrator account usernames must not use easily guessed values such as `admin`, `administrator`, or `webmaster`, which are the first targets of automated brute-force attacks. Administrator accounts must not publish content or comment while logged in. Whoever publishes gets an Author or Editor account.
 
-**Rationale:** Each administrator account is a potential entry point. Compromising any single admin account grants full site control. Minimizing admin accounts reduces the attack surface. Default or predictable usernames make brute-force and credential-stuffing attacks significantly easier.
+**Rationale:** Each administrator account is a potential entry point. Compromising any single admin account grants full site control. Minimizing admin accounts reduces the attack surface. Default or predictable usernames make brute-force and credential-stuffing attacks significantly easier. Publishing makes an account visible: its display name appears in bylines, feeds and comments, and its slug in author URLs (see 5.9). When the publishing account is an administrator, every post advertises the account most worth attacking. When publishing is done from a lower-privilege account, an exposed identity leads to an account that cannot take over the site.
 
 **Impact:** Concentrates administrative privileges among fewer users. Operations that require administrator access may experience delays if authorized personnel are not immediately available.
 
@@ -1132,6 +1132,11 @@ Recommended: Enforce 2FA as mandatory for admin roles with a grace period for in
 $ wp user list --role=administrator --fields=ID,user_login,user_email --path=/path/to/wordpress
 ```
 Review the list. Verify that each admin account is actively needed and assigned to a specific individual.
+
+Count published content authored by administrator accounts. Any result above zero is a finding:
+```
+$ wp post list --author="$(wp user list --role=administrator --format=ids --path=/path/to/wordpress | tr ' ' ',')" --post_type=any --post_status=publish --format=count --path=/path/to/wordpress
+```
 
 **Remediation:**
 
@@ -1144,6 +1149,10 @@ $ wp user delete <old-user-id> --reassign=<new-user-id> --yes --path=/path/to/wo
 3\. Downgrade accounts that don't require full admin capabilities to Editor or a custom role.
 4\. Reserve one primary administrator account for break-glass emergencies.
 5\. Use custom roles with tailored capabilities for day-to-day operations.
+6\. Give each person who publishes a separate Author or Editor account, and reassign content that administrator accounts published:
+```
+$ wp post update $(wp post list --author=<admin-user-id> --post_type=any --format=ids --path=/path/to/wordpress) --post_author=<author-user-id> --path=/path/to/wordpress
+```
 
 **Default Value:** One administrator account is created during installation.
 
