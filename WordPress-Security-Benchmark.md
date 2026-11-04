@@ -1133,7 +1133,7 @@ $ wp user list --role=administrator --fields=ID,user_login,user_email --path=/pa
 ```
 Review the list. Verify that each admin account is actively needed and assigned to a specific individual.
 
-Count published content owned by administrator accounts across every public post type. Any result above zero is a finding. Do not use `--post_type=any`: WP-CLI passes it to `WP_Query`, which then skips every post type registered with `exclude_from_search`, including public types with bylines such as bbPress topics and replies. Do not filter by `post_type_supports( 'author' )` either: plugins can store a public author without declaring that support, and core declares it for site-building types that administrators are expected to own, such as templates, template parts, synced patterns and Customizer changesets. Attachments are left out here and reviewed in remediation step 6.
+Count published content owned by administrator accounts across every public post type. Any result above zero is a finding. Do not use `--post_type=any`: WP-CLI passes it to `WP_Query`, which then skips every post type registered with `exclude_from_search`, including public types with bylines such as bbPress topics and replies. Do not filter by `post_type_supports( 'author' )` either: plugins can store a public author without declaring that support, and core declares it for site-building types that administrators are expected to own, such as templates, template parts, synced patterns and Customizer changesets. Attachments are left out here and reviewed in remediation step 6. These are site-level checks: `--role=administrator` lists one site's Administrators, not a network's Super Admins. On Multisite, run them on each site with `--url=<site-url>`, and audit Super Admins with control 13.1.
 ```
 $ types=$(wp eval 'echo implode( ",", array_diff( get_post_types( array( "public" => true ) ), array( "attachment" ) ) );' --path=/path/to/wordpress)
 $ admins=$(wp user list --role=administrator --format=ids --path=/path/to/wordpress | tr ' ' ',')
@@ -1152,11 +1152,12 @@ $ wp user delete <old-user-id> --reassign=<new-user-id> --yes --path=/path/to/wo
 3\. Downgrade accounts that don't require full admin capabilities to Editor or a custom role.
 4\. Reserve one primary administrator account for break-glass emergencies.
 5\. Use custom roles with tailored capabilities for day-to-day operations.
-6\. Give each person who publishes a separate Author or Editor account, and reassign content that administrator accounts own. Use the `$types` list from the audit and name the statuses to move rather than relying on the default, which also matches attachments' `inherit` status and leaves trash and auto-drafts out. List first, then reassign. Review attachments separately:
+6\. Give each person who publishes a separate Author or Editor account, and reassign content that administrator accounts own. Use the `$types` list from the audit and name the statuses to move rather than relying on the default, which also matches attachments' `inherit` status and leaves trash and auto-drafts out. Capture the post IDs once, review that list, then reassign exactly those posts, so nothing changes between review and update. Review attachments separately:
 ```
 $ statuses=publish,future,draft,pending,private
-$ wp post list --author=<admin-user-id> --post_type="$types" --post_status="$statuses" --fields=ID,post_type,post_status,post_title --path=/path/to/wordpress
-$ wp post update $(wp post list --author=<admin-user-id> --post_type="$types" --post_status="$statuses" --format=ids --path=/path/to/wordpress) --post_author=<author-user-id> --path=/path/to/wordpress
+$ ids=$(wp post list --author=<admin-user-id> --post_type="$types" --post_status="$statuses" --format=ids --path=/path/to/wordpress | tr ' ' ',')
+$ wp post list --post__in="$ids" --post_type="$types" --post_status="$statuses" --fields=ID,post_type,post_status,post_title --path=/path/to/wordpress
+$ wp post update $(echo "$ids" | tr ',' ' ') --post_author=<author-user-id> --path=/path/to/wordpress
 $ wp post list --author=<admin-user-id> --post_type=attachment --post_status=inherit --fields=ID,post_title --path=/path/to/wordpress
 ```
 
