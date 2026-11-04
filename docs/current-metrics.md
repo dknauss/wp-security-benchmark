@@ -8,7 +8,7 @@ Last verified: 2026-11-02
 
 | Fact | Value | Verification command | Last changed |
 |---|---:|---|---|
-| Document lines | 2715 | `wc -l WordPress-Security-Benchmark.md` | 2026-11-02 |
+| Document lines | 2722 | `wc -l WordPress-Security-Benchmark.md` | 2026-11-03 |
 | Major sections (H2) | 22 | `grep -cE '^## ' WordPress-Security-Benchmark.md` | v1.0 |
 | Security controls | 52 | `grep -cE '^#### [0-9]+\.[0-9]+' WordPress-Security-Benchmark.md` | 2026-11-02 |
 | Audit sections | 52 | `grep -c '\*\*Audit:\*\*' WordPress-Security-Benchmark.md` | 2026-11-02 |

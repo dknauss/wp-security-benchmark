@@ -12,6 +12,7 @@ All notable changes to the WordPress Security Benchmark.
 - Control 5.2: administrator accounts must not publish or comment while logged in, and each person who publishes gets an Author or Editor account. Adds an audit that counts published content by administrators and a WP-CLI step that reassigns it.
 
 ### Fixed
+- Control 5.2: the audit and remediation no longer use `--post_type=any`, which skips post types registered with `exclude_from_search` (such as bbPress topics and replies) and so undercounted administrator-owned content. Both now list public post types explicitly, the remediation names the statuses it moves and lists attachments separately, and the audit notes that it measures ownership, not who published. The remediation captures the post IDs once and reassigns that reviewed list, and the audit says it is site-level, pointing Multisite networks to control 13.1 for Super Admins.
 - Control 11.4: corrected after verification against WordPress 7.1.3 core. `wp_pre_execute_ability` bypasses the permission check only for direct PHP execution, not on the REST run endpoint; `wp_ability_permission_result` can allow even unauthenticated REST runs; `wp_ability_invoked` does not fire for REST-rejected requests. Added verified default values, and per-channel behavior for WP-CLI (`wp ability`) and MCP Adapter 0.7.0.
 
 ### Fixed
